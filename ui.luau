@@ -1,6 +1,7 @@
 -- ==============================================================================
--- ORC Mobile Dynamic Multi-Panel In-Game Architecture (Delta-Style UI)
--- Pure Monochrome (#000000 / #FFFFFF) - Mobile Responsive - Touch Optimized
+-- ORC Mobile Modern Delta Architecture UI v3.0
+-- Pure Monochrome (#000000 / #FFFFFF) - Isolated Right Dock - Floating Windows
+-- Full Color-Coded Dual Console Engine (Error / Warn / Info / Script)
 -- ==============================================================================
 
 local CoreGui = game:GetService("CoreGui")
@@ -17,33 +18,32 @@ pcall(function()
     end
 end)
 
--- Remove any prior instance
-local existingUI = targetParent:FindFirstChild("ORC_DELTA_FRAMEWORK")
+local existingUI = targetParent:FindFirstChild("ORC_DELTA_REAL_UI")
 if existingUI then existingUI:Destroy() end
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ORC_DELTA_FRAMEWORK"
+screenGui.Name = "ORC_DELTA_REAL_UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 999999
 screenGui.Parent = targetParent
 
--- Colors
-local C_BLACK = Color3.fromRGB(10, 10, 12)
-local C_PANEL = Color3.fromRGB(16, 16, 20)
-local C_BORDER = Color3.fromRGB(45, 45, 52)
+-- Palette (Monochrome Sharp Aesthetic)
+local C_BG = Color3.fromRGB(12, 12, 14)
+local C_BAR = Color3.fromRGB(18, 18, 22)
+local C_BORDER = Color3.fromRGB(38, 38, 44)
 local C_WHITE = Color3.fromRGB(255, 255, 255)
-local C_MUTED = Color3.fromRGB(160, 160, 170)
-local C_DARK_ACCENT = Color3.fromRGB(26, 26, 32)
+local C_MUTED = Color3.fromRGB(150, 150, 160)
+local C_ACTIVE_GLOW = Color3.fromRGB(255, 255, 255)
 
 -- ------------------------------------------------------------------------------
--- 1. FLOATING BUBBLE (When minimized)
+-- 1. FLOATING DRAGGABLE TOGGLE BUBBLE (Bottom / Screen edge)
 -- ------------------------------------------------------------------------------
 local floatingBubble = Instance.new("ImageButton")
 floatingBubble.Name = "FloatingBubble"
-floatingBubble.Size = UDim2.new(0, 48, 0, 48)
-floatingBubble.Position = UDim2.new(0, 16, 0.45, 0)
-floatingBubble.BackgroundColor3 = C_BLACK
+floatingBubble.Size = UDim2.new(0, 46, 0, 46)
+floatingBubble.Position = UDim2.new(1, -60, 0.45, 0)
+floatingBubble.BackgroundColor3 = C_BG
 floatingBubble.AutoButtonColor = false
 floatingBubble.Visible = false
 floatingBubble.Active = true
@@ -56,192 +56,182 @@ bubbleCorner.Parent = floatingBubble
 
 local bubbleStroke = Instance.new("UIStroke")
 bubbleStroke.Color = C_WHITE
-bubbleStroke.Thickness = 1.8
+bubbleStroke.Thickness = 1.5
 bubbleStroke.Parent = floatingBubble
 
-local bubbleIcon = Instance.new("TextLabel")
-bubbleIcon.Size = UDim2.new(1, 0, 1, 0)
-bubbleIcon.BackgroundTransparency = 1
-bubbleIcon.Text = "O"
-bubbleIcon.TextColor3 = C_WHITE
-bubbleIcon.Font = Enum.Font.GothamBold
-bubbleIcon.TextSize = 22
-bubbleIcon.Parent = floatingBubble
+local bubbleLabel = Instance.new("TextLabel")
+bubbleLabel.Size = UDim2.new(1, 0, 1, 0)
+bubbleLabel.BackgroundTransparency = 1
+bubbleLabel.Text = "O"
+bubbleLabel.TextColor3 = C_WHITE
+bubbleLabel.Font = Enum.Font.GothamBold
+bubbleLabel.TextSize = 20
+bubbleLabel.Parent = floatingBubble
 
 -- ------------------------------------------------------------------------------
--- 2. MAIN CONTAINER & SIDEBAR (Delta Style)
+-- 2. DEDICATED INDEPENDENT RIGHT-SIDE DOCK (Delta Style)
 -- ------------------------------------------------------------------------------
-local mainContainer = Instance.new("Frame")
-mainContainer.Name = "MainContainer"
-mainContainer.Size = UDim2.new(0.85, 0, 0.78, 0)
-mainContainer.Position = UDim2.new(0.075, 0, 0.11, 0)
-mainContainer.BackgroundTransparency = 1
-mainContainer.Parent = screenGui
+local rightDock = Instance.new("Frame")
+rightDock.Name = "RightDock"
+rightDock.Size = UDim2.new(0, 48, 0, 310)
+rightDock.Position = UDim2.new(1, -58, 0.5, -155)
+rightDock.BackgroundColor3 = C_BAR
+rightDock.BorderSizePixel = 0
+rightDock.Parent = screenGui
 
--- Left Icon Sidebar (Floating Bar with 6 Action Buttons)
-local sidebar = Instance.new("Frame")
-sidebar.Name = "Sidebar"
-sidebar.Size = UDim2.new(0, 52, 1, 0)
-sidebar.Position = UDim2.new(0, 0, 0, 0)
-sidebar.BackgroundColor3 = C_BLACK
-sidebar.BorderSizePixel = 0
-sidebar.Parent = mainContainer
+local dockCorner = Instance.new("UICorner")
+dockCorner.CornerRadius = UDim.new(0, 16)
+dockCorner.Parent = rightDock
 
-local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 14)
-sidebarCorner.Parent = sidebar
+local dockStroke = Instance.new("UIStroke")
+dockStroke.Color = C_BORDER
+dockStroke.Thickness = 1.2
+dockStroke.Parent = rightDock
 
-local sidebarStroke = Instance.new("UIStroke")
-sidebarStroke.Color = C_BORDER
-sidebarStroke.Thickness = 1.2
-sidebarStroke.Parent = sidebar
+local dockLayout = Instance.new("UIListLayout")
+dockLayout.SortOrder = Enum.SortOrder.LayoutOrder
+dockLayout.Padding = UDim.new(0, 8)
+dockLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+dockLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+dockLayout.Parent = rightDock
 
-local sidebarLayout = Instance.new("UIListLayout")
-sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-sidebarLayout.Padding = UDim.new(0, 10)
-sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-sidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-sidebarLayout.Parent = sidebar
+local dockPadding = Instance.new("UIPadding")
+dockPadding.PaddingTop = UDim.new(0, 10)
+dockPadding.PaddingBottom = UDim.new(0, 10)
+dockPadding.Parent = rightDock
 
-local sidebarPadding = Instance.new("UIPadding")
-sidebarPadding.PaddingTop = UDim.new(0, 12)
-sidebarPadding.PaddingBottom = UDim.new(0, 12)
-sidebarPadding.Parent = sidebar
-
--- Content Flyout Window
-local contentWindow = Instance.new("Frame")
-contentWindow.Name = "ContentWindow"
-contentWindow.Size = UDim2.new(1, -64, 1, 0)
-contentWindow.Position = UDim2.new(0, 64, 0, 0)
-contentWindow.BackgroundColor3 = C_PANEL
-contentWindow.BorderSizePixel = 0
-contentWindow.Parent = mainContainer
+-- ------------------------------------------------------------------------------
+-- 3. FLOATING MAIN WINDOW (Center/Left from the Dock)
+-- ------------------------------------------------------------------------------
+local mainWindow = Instance.new("Frame")
+mainWindow.Name = "MainWindow"
+mainWindow.Size = UDim2.new(0, 520, 0, 290)
+mainWindow.Position = UDim2.new(0.5, -290, 0.5, -145)
+mainWindow.BackgroundColor3 = C_BG
+mainWindow.BorderSizePixel = 0
+mainWindow.Active = true
+mainWindow.Draggable = true
+mainWindow.Parent = screenGui
 
 local windowCorner = Instance.new("UICorner")
 windowCorner.CornerRadius = UDim.new(0, 14)
-windowCorner.Parent = contentWindow
+windowCorner.Parent = mainWindow
 
 local windowStroke = Instance.new("UIStroke")
 windowStroke.Color = C_BORDER
 windowStroke.Thickness = 1.2
-windowStroke.Parent = contentWindow
+windowStroke.Parent = mainWindow
 
--- Header inside Content Window
-local windowHeader = Instance.new("Frame")
-windowHeader.Name = "WindowHeader"
-windowHeader.Size = UDim2.new(1, 0, 0, 42)
-windowHeader.BackgroundTransparency = 1
-windowHeader.Parent = contentWindow
+-- Window Header
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 38)
+header.BackgroundTransparency = 1
+header.Parent = mainWindow
 
-local headerTitle = Instance.new("TextLabel")
-headerTitle.Name = "HeaderTitle"
-headerTitle.Size = UDim2.new(1, -30, 1, 0)
-headerTitle.Position = UDim2.new(0, 20, 0, 0)
-headerTitle.BackgroundTransparency = 1
-headerTitle.Text = "ORC // TERMINAL"
-headerTitle.TextColor3 = C_WHITE
-headerTitle.Font = Enum.Font.GothamBold
-headerTitle.TextSize = 14
-headerTitle.TextXAlignment = Enum.TextXAlignment.Left
-headerTitle.Parent = windowHeader
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -24, 1, 0)
+titleLabel.Position = UDim2.new(0, 16, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "ORC STUDIO // EXECUTOR"
+titleLabel.TextColor3 = C_WHITE
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 13
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = header
 
-local headerSep = Instance.new("Frame")
-headerSep.Size = UDim2.new(1, -40, 0, 1)
-headerSep.Position = UDim2.new(0, 20, 1, -1)
-headerSep.BackgroundColor3 = C_BORDER
-headerSep.BorderSizePixel = 0
-headerSep.Parent = windowHeader
+local headerDivider = Instance.new("Frame")
+headerDivider.Size = UDim2.new(1, -32, 0, 1)
+headerDivider.Position = UDim2.new(0, 16, 1, -1)
+headerDivider.BackgroundColor3 = C_BORDER
+headerDivider.BorderSizePixel = 0
+headerDivider.Parent = header
 
--- Viewport Body
-local viewportBody = Instance.new("Frame")
-viewportBody.Name = "ViewportBody"
-viewportBody.Size = UDim2.new(1, -40, 1, -54)
-viewportBody.Position = UDim2.new(0, 20, 0, 48)
-viewportBody.BackgroundTransparency = 1
-viewportBody.Parent = contentWindow
+-- Viewport Container
+local viewport = Instance.new("Frame")
+viewport.Name = "Viewport"
+viewport.Size = UDim2.new(1, -32, 1, -48)
+viewport.Position = UDim2.new(0, 16, 0, 44)
+viewport.BackgroundTransparency = 1
+viewport.Parent = mainWindow
 
 -- ------------------------------------------------------------------------------
--- 3. SIDEBAR BUTTON CREATION
+-- 4. DOCK BUTTON GENERATOR
 -- ------------------------------------------------------------------------------
+local pages = {}
+local buttons = {}
 local activeTab = nil
-local tabButtons = {}
-local tabPages = {}
 
-local function createSidebarButton(name, iconText, layoutOrder, isExit)
+local function createDockButton(name, iconText, order, isClose)
     local btn = Instance.new("TextButton")
     btn.Name = name
-    btn.Size = UDim2.new(0, 40, 0, 40)
-    btn.BackgroundColor3 = isExit and C_BLACK or C_DARK_ACCENT
+    btn.Size = UDim2.new(0, 36, 0, 36)
+    btn.BackgroundColor3 = isClose and Color3.fromRGB(30, 18, 20) or Color3.fromRGB(24, 24, 30)
     btn.AutoButtonColor = false
-    btn.LayoutOrder = layoutOrder
+    btn.LayoutOrder = order
     btn.Text = iconText
-    btn.TextColor3 = isExit and Color3.fromRGB(255, 90, 90) or C_MUTED
+    btn.TextColor3 = isClose and Color3.fromRGB(255, 90, 90) or C_MUTED
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.Parent = sidebar
+    btn.TextSize = 15
+    btn.Parent = rightDock
 
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 10)
-    btnCorner.Parent = btn
+    local bCorner = Instance.new("UICorner")
+    bCorner.CornerRadius = UDim.new(0, 10)
+    bCorner.Parent = btn
 
-    local btnStroke = Instance.new("UIStroke")
-    btnStroke.Color = C_BORDER
-    btnStroke.Thickness = 1
-    btnStroke.Parent = btn
+    local bStroke = Instance.new("UIStroke")
+    bStroke.Color = C_BORDER
+    bStroke.Thickness = 1
+    bStroke.Parent = btn
 
-    tabButtons[name] = btn
+    buttons[name] = btn
     return btn
 end
 
--- 1: Terminal / Code Executor
-local btnTerminal = createSidebarButton("Terminal", ">_", 1)
--- 2: Saved Scripts
-local btnScripts = createSidebarButton("Scripts", "★", 2)
--- 3: Search Database
-local btnSearch = createSidebarButton("Search", "🔍", 3)
--- 4: Dual Console (ORC Left, Roblox Right)
-local btnConsole = createSidebarButton("Console", "≡", 4)
--- 5: Settings
-local btnSettings = createSidebarButton("Settings", "⚙", 5)
--- 6: Exit / Minimize (At the very bottom)
-local btnMinimize = createSidebarButton("Minimize", "✕", 6, true)
+local btnExecutor = createDockButton("Executor", ">_", 1)
+local btnSaved = createDockButton("Saved", "★", 2)
+local btnSearch = createDockButton("Search", "🔍", 3)
+local btnConsole = createDockButton("Console", "≡", 4)
+local btnSettings = createDockButton("Settings", "⚙", 5)
+local btnClose = createDockButton("Close", "✕", 6, true)
 
 -- ------------------------------------------------------------------------------
--- 4. PAGE 1: TERMINAL (CODE EXECUTOR & SCRIPT INPUT)
+-- 5. TAB 1: CODE EXECUTOR & TERMINAL
 -- ------------------------------------------------------------------------------
-local pageTerminal = Instance.new("Frame")
-pageTerminal.Name = "Page_Terminal"
-pageTerminal.Size = UDim2.new(1, 0, 1, 0)
-pageTerminal.BackgroundTransparency = 1
-pageTerminal.Visible = false
-pageTerminal.Parent = viewportBody
-tabPages["Terminal"] = pageTerminal
+local pageExecutor = Instance.new("Frame")
+pageExecutor.Name = "Page_Executor"
+pageExecutor.Size = UDim2.new(1, 0, 1, 0)
+pageExecutor.BackgroundTransparency = 1
+pageExecutor.Visible = false
+pageExecutor.Parent = viewport
+pages["Executor"] = pageExecutor
 
 local editorBox = Instance.new("TextBox")
-editorBox.Name = "CodeEditor"
-editorBox.Size = UDim2.new(1, 0, 1, -48)
-editorBox.BackgroundColor3 = C_BLACK
+editorBox.Name = "CodeBox"
+editorBox.Size = UDim2.new(1, 0, 1, -44)
+editorBox.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 editorBox.TextColor3 = C_WHITE
-editorBox.PlaceholderText = "-- Enter Luau script here or load from repository..."
-editorBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+editorBox.PlaceholderText = "-- Type or paste Luau code here..."
+editorBox.PlaceholderColor3 = Color3.fromRGB(110, 110, 120)
 editorBox.Font = Enum.Font.Code
-editorBox.TextSize = 13
+editorBox.TextSize = 12
 editorBox.TextXAlignment = Enum.TextXAlignment.Left
 editorBox.TextYAlignment = Enum.TextYAlignment.Top
 editorBox.ClearTextOnFocus = false
 editorBox.MultiLine = true
 editorBox.Text = ""
-editorBox.Parent = pageTerminal
+editorBox.Parent = pageExecutor
 
 local edCorner = Instance.new("UICorner")
 edCorner.CornerRadius = UDim.new(0, 10)
 edCorner.Parent = editorBox
 
 local edPad = Instance.new("UIPadding")
-edPad.PaddingLeft = UDim.new(0, 12)
-edPad.PaddingTop = UDim.new(0, 12)
-edPad.PaddingRight = UDim.new(0, 12)
-edPad.PaddingBottom = UDim.new(0, 12)
+edPad.PaddingLeft = UDim.new(0, 10)
+edPad.PaddingTop = UDim.new(0, 10)
+edPad.PaddingRight = UDim.new(0, 10)
+edPad.PaddingBottom = UDim.new(0, 10)
 edPad.Parent = editorBox
 
 local edStroke = Instance.new("UIStroke")
@@ -249,28 +239,28 @@ edStroke.Color = C_BORDER
 edStroke.Thickness = 1
 edStroke.Parent = editorBox
 
-local actionsRow = Instance.new("Frame")
-actionsRow.Size = UDim2.new(1, 0, 0, 40)
-actionsRow.Position = UDim2.new(0, 0, 1, -40)
-actionsRow.BackgroundTransparency = 1
-actionsRow.Parent = pageTerminal
+local btnRow = Instance.new("Frame")
+btnRow.Size = UDim2.new(1, 0, 0, 36)
+btnRow.Position = UDim2.new(0, 0, 1, -36)
+btnRow.BackgroundTransparency = 1
+btnRow.Parent = pageExecutor
 
-local actionsLayout = Instance.new("UIListLayout")
-actionsLayout.FillDirection = Enum.FillDirection.Horizontal
-actionsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-actionsLayout.Padding = UDim.new(0, 10)
-actionsLayout.Parent = actionsRow
+local btnRowLayout = Instance.new("UIListLayout")
+btnRowLayout.FillDirection = Enum.FillDirection.Horizontal
+btnRowLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+btnRowLayout.Padding = UDim.new(0, 8)
+btnRowLayout.Parent = btnRow
 
-local function createTerminalButton(text, bgCol, textCol)
+local function makeBtn(text, bgCol, textCol)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0, 100, 1, 0)
+    b.Size = UDim2.new(0, 95, 1, 0)
     b.BackgroundColor3 = bgCol
     b.TextColor3 = textCol
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 12
+    b.TextSize = 11
     b.Text = text
     b.AutoButtonColor = false
-    b.Parent = actionsRow
+    b.Parent = btnRow
 
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, 8)
@@ -278,11 +268,20 @@ local function createTerminalButton(text, bgCol, textCol)
     return b
 end
 
-local btnClear = createTerminalButton("CLEAR", C_DARK_ACCENT, C_WHITE)
-local btnExecute = createTerminalButton("EXECUTE", C_WHITE, C_BLACK)
+local btnPaste = makeBtn("PASTE", Color3.fromRGB(24, 24, 30), C_WHITE)
+local btnClear = makeBtn("CLEAR", Color3.fromRGB(24, 24, 30), C_WHITE)
+local btnExecute = makeBtn("EXECUTE", C_WHITE, Color3.fromRGB(10, 10, 12))
 
 btnClear.MouseButton1Click:Connect(function()
     editorBox.Text = ""
+end)
+
+btnPaste.MouseButton1Click:Connect(function()
+    pcall(function()
+        if getclipboard then
+            editorBox.Text = getclipboard()
+        end
+    end)
 end)
 
 btnExecute.MouseButton1Click:Connect(function()
@@ -292,44 +291,43 @@ btnExecute.MouseButton1Click:Connect(function()
         if fn then
             task.spawn(fn)
         else
-            warn("[ORC Runtime] Compile Error: ", tostring(err))
+            warn("[ORC Runtime] Compile Error: " .. tostring(err))
         end
     end
 end)
 
 -- ------------------------------------------------------------------------------
--- 5. PAGE 2: SAVED SCRIPTS
+-- 6. TAB 2: SAVED SCRIPTS
 -- ------------------------------------------------------------------------------
-local pageScripts = Instance.new("ScrollingFrame")
-pageScripts.Name = "Page_Scripts"
-pageScripts.Size = UDim2.new(1, 0, 1, 0)
-pageScripts.BackgroundTransparency = 1
-pageScripts.BorderSizePixel = 0
-pageScripts.ScrollBarThickness = 4
-pageScripts.ScrollBarImageColor3 = C_WHITE
-pageScripts.Visible = false
-pageScripts.Parent = viewportBody
-tabPages["Scripts"] = pageScripts
+local pageSaved = Instance.new("ScrollingFrame")
+pageSaved.Name = "Page_Saved"
+pageSaved.Size = UDim2.new(1, 0, 1, 0)
+pageSaved.BackgroundTransparency = 1
+pageSaved.BorderSizePixel = 0
+pageSaved.ScrollBarThickness = 3
+pageSaved.ScrollBarImageColor3 = C_WHITE
+pageSaved.Visible = false
+pageSaved.Parent = viewport
+pages["Saved"] = pageSaved
 
-local scriptsLayout = Instance.new("UIListLayout")
-scriptsLayout.Padding = UDim.new(0, 10)
-scriptsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-scriptsLayout.Parent = pageScripts
+local savedLayout = Instance.new("UIListLayout")
+savedLayout.Padding = UDim.new(0, 8)
+savedLayout.Parent = pageSaved
 
-local sampleScripts = {
-    { title = "Universal ESP & Visuals", code = "loadstring(game:HttpGet('https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/fats.luau', true))()" },
+local defaultSaved = {
+    { title = "Universal ESP & Tracers", code = "loadstring(game:HttpGet('https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/fats.luau', true))()" },
     { title = "Hyper Evade Suite", code = "loadstring(game:HttpGet('https://raw.githubusercontent.com/MITTO-m4x/Hyper_M4X_EVA/refs/heads/main/Hyper_EVADE.lua', true))()" },
-    { title = "Blade Ball Auto-Parry", code = "loadstring(game:HttpGet('https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/bladeball.luau', true))()" }
+    { title = "Blade Ball Ultra Parry", code = "loadstring(game:HttpGet('https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/bladeball.luau', true))()" }
 }
 
-for i, scriptItem in ipairs(sampleScripts) do
+for _, item in ipairs(defaultSaved) do
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, 0, 0, 54)
-    card.BackgroundColor3 = C_BLACK
-    card.Parent = pageScripts
+    card.Size = UDim2.new(1, -6, 0, 46)
+    card.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+    card.Parent = pageSaved
 
     local cCorner = Instance.new("UICorner")
-    cCorner.CornerRadius = UDim.new(0, 10)
+    cCorner.CornerRadius = UDim.new(0, 8)
     cCorner.Parent = card
 
     local cStroke = Instance.new("UIStroke")
@@ -338,76 +336,77 @@ for i, scriptItem in ipairs(sampleScripts) do
     cStroke.Parent = card
 
     local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0.65, 0, 1, 0)
-    lbl.Position = UDim2.new(0, 16, 0, 0)
+    lbl.Size = UDim2.new(0.7, 0, 1, 0)
+    lbl.Position = UDim2.new(0, 12, 0, 0)
     lbl.BackgroundTransparency = 1
-    lbl.Text = scriptItem.title
+    lbl.Text = item.title
     lbl.TextColor3 = C_WHITE
     lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 13
+    lbl.TextSize = 12
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = card
 
-    local loadBtn = Instance.new("TextButton")
-    loadBtn.Size = UDim2.new(0, 80, 0, 32)
-    loadBtn.Position = UDim2.new(1, -96, 0.5, -16)
-    loadBtn.BackgroundColor3 = C_WHITE
-    loadBtn.TextColor3 = C_BLACK
-    loadBtn.Font = Enum.Font.GothamBold
-    loadBtn.TextSize = 11
-    loadBtn.Text = "RUN"
-    loadBtn.Parent = card
+    local runBtn = Instance.new("TextButton")
+    runBtn.Size = UDim2.new(0, 68, 0, 28)
+    runBtn.Position = UDim2.new(1, -78, 0.5, -14)
+    runBtn.BackgroundColor3 = C_WHITE
+    runBtn.TextColor3 = Color3.fromRGB(10, 10, 12)
+    runBtn.Font = Enum.Font.GothamBold
+    runBtn.TextSize = 10
+    runBtn.Text = "RUN"
+    runBtn.Parent = card
 
-    local lbCorner = Instance.new("UICorner")
-    lbCorner.CornerRadius = UDim.new(0, 8)
-    lbCorner.Parent = loadBtn
+    local rbCorner = Instance.new("UICorner")
+    rbCorner.CornerRadius = UDim.new(0, 6)
+    rbCorner.Parent = runBtn
 
-    loadBtn.MouseButton1Click:Connect(function()
-        local fn = loadstring(scriptItem.code)
+    runBtn.MouseButton1Click:Connect(function()
+        local fn = loadstring(item.code)
         if fn then task.spawn(fn) end
     end)
 end
 
 -- ------------------------------------------------------------------------------
--- 6. PAGE 3: SCRIPT DATABASE SEARCH (Placeholder for Cloud API)
+-- 7. TAB 3: SEARCH SCRIPTS
 -- ------------------------------------------------------------------------------
 local pageSearch = Instance.new("Frame")
 pageSearch.Name = "Page_Search"
 pageSearch.Size = UDim2.new(1, 0, 1, 0)
 pageSearch.BackgroundTransparency = 1
 pageSearch.Visible = false
-pageSearch.Parent = viewportBody
-tabPages["Search"] = pageSearch
+pageSearch.Parent = viewport
+pages["Search"] = pageSearch
 
-local searchInfo = Instance.new("TextLabel")
-searchInfo.Size = UDim2.new(1, 0, 1, 0)
-searchInfo.BackgroundTransparency = 1
-searchInfo.Text = "// CLOUD SCRIPT DATABASE //\nIndex search engine will connect in future update."
-searchInfo.TextColor3 = C_MUTED
-searchInfo.Font = Enum.Font.Code
-searchInfo.TextSize = 14
-searchInfo.Parent = pageSearch
+local sInfo = Instance.new("TextLabel")
+sInfo.Size = UDim2.new(1, 0, 1, 0)
+sInfo.BackgroundTransparency = 1
+sInfo.Text = "// CLOUD SCRIPT REPOSITORY //\nSearch interface will fetch from cloud database."
+sInfo.TextColor3 = C_MUTED
+sInfo.Font = Enum.Font.Code
+sInfo.TextSize = 13
+sInfo.Parent = pageSearch
 
 -- ------------------------------------------------------------------------------
--- 7. PAGE 4: DUAL CONSOLE (Left: ORC Logger, Right: Roblox Native Output)
+-- 8. TAB 4: DUAL CONSOLE (LEFT: ORC EXECUTOR, RIGHT: ROBLOX NATIVE)
+-- Full Color Support: Red (Error), Yellow (Warning), Blue (Info), White (Normal)
 -- ------------------------------------------------------------------------------
 local pageConsole = Instance.new("Frame")
 pageConsole.Name = "Page_Console"
 pageConsole.Size = UDim2.new(1, 0, 1, 0)
 pageConsole.BackgroundTransparency = 1
 pageConsole.Visible = false
-pageConsole.Parent = viewportBody
-tabPages["Console"] = pageConsole
+pageConsole.Parent = viewport
+pages["Console"] = pageConsole
 
-local consoleSplitLayout = Instance.new("UIListLayout")
-consoleSplitLayout.FillDirection = Enum.FillDirection.Horizontal
-consoleSplitLayout.Padding = UDim.new(0, 12)
-consoleSplitLayout.Parent = pageConsole
+local split = Instance.new("UIListLayout")
+split.FillDirection = Enum.FillDirection.Horizontal
+split.Padding = UDim.new(0, 10)
+split.Parent = pageConsole
 
-local function createConsolePane(title, isRight)
+local function makeConsolePane(title)
     local pane = Instance.new("Frame")
-    pane.Size = UDim2.new(0.5, -6, 1, 0)
-    pane.BackgroundColor3 = C_BLACK
+    pane.Size = UDim2.new(0.5, -5, 1, 0)
+    pane.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
     pane.Parent = pageConsole
 
     local pCorner = Instance.new("UICorner")
@@ -420,138 +419,183 @@ local function createConsolePane(title, isRight)
     pStroke.Parent = pane
 
     local pHeader = Instance.new("TextLabel")
-    pHeader.Size = UDim2.new(1, -20, 0, 32)
-    pHeader.Position = UDim2.new(0, 12, 0, 0)
+    pHeader.Size = UDim2.new(1, -16, 0, 26)
+    pHeader.Position = UDim2.new(0, 10, 0, 2)
     pHeader.BackgroundTransparency = 1
     pHeader.Text = title
     pHeader.TextColor3 = C_MUTED
     pHeader.Font = Enum.Font.Code
-    pHeader.TextSize = 11
+    pHeader.TextSize = 10
     pHeader.TextXAlignment = Enum.TextXAlignment.Left
     pHeader.Parent = pane
 
     local pScroll = Instance.new("ScrollingFrame")
-    pScroll.Size = UDim2.new(1, -24, 1, -40)
-    pScroll.Position = UDim2.new(0, 12, 0, 34)
+    pScroll.Size = UDim2.new(1, -16, 1, -34)
+    pScroll.Position = UDim2.new(0, 8, 0, 28)
     pScroll.BackgroundTransparency = 1
     pScroll.BorderSizePixel = 0
-    pScroll.ScrollBarThickness = 3
+    pScroll.ScrollBarThickness = 2
     pScroll.ScrollBarImageColor3 = C_WHITE
+    pScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    pScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     pScroll.Parent = pane
 
     local pList = Instance.new("UIListLayout")
-    pList.Padding = UDim.new(0, 4)
+    pList.Padding = UDim.new(0, 3)
     pList.SortOrder = Enum.SortOrder.LayoutOrder
     pList.Parent = pScroll
 
     return pScroll
 end
 
-local orcLogScroll = createConsolePane("// [LEFT] ORC EXECUTOR LOG", false)
-local rbxLogScroll = createConsolePane("// [RIGHT] ROBLOX CONSOLE", true)
+local orcPane = makeConsolePane("// [LEFT] ORC EXECUTOR LOG")
+local rbxPane = makeConsolePane("// [RIGHT] ROBLOX CONSOLE")
 
--- Hook LogService for Roblox console output
-LogService.MessageOut:Connect(function(message, messageType)
+-- Helper to add structured log entry with precise coloring
+local function addLogMessage(scrollFrame, text, col, tag)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 16)
+    row.BackgroundTransparency = 1
+    row.Parent = scrollFrame
+
+    local tagLabel = Instance.new("TextLabel")
+    tagLabel.Size = UDim2.new(0, 48, 1, 0)
+    tagLabel.BackgroundTransparency = 1
+    tagLabel.Text = tag or "[LOG]"
+    tagLabel.TextColor3 = col
+    tagLabel.Font = Enum.Font.Code
+    tagLabel.TextSize = 9
+    tagLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tagLabel.Parent = row
+
     local msgLabel = Instance.new("TextLabel")
-    msgLabel.Size = UDim2.new(1, 0, 0, 18)
+    msgLabel.Size = UDim2.new(1, -52, 1, 0)
+    msgLabel.Position = UDim2.new(0, 52, 0, 0)
     msgLabel.BackgroundTransparency = 1
-    msgLabel.Text = message
+    msgLabel.Text = tostring(text)
+    msgLabel.TextColor3 = col
     msgLabel.Font = Enum.Font.Code
-    msgLabel.TextSize = 10
+    msgLabel.TextSize = 9
     msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+    msgLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    msgLabel.Parent = row
 
-    if messageType == Enum.MessageType.MessageError then
-        msgLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-    elseif messageType == Enum.MessageType.MessageWarning then
-        msgLabel.TextColor3 = Color3.fromRGB(240, 200, 80)
-    else
-        msgLabel.TextColor3 = C_MUTED
-    end
-    msgLabel.Parent = rbxLogScroll
-    rbxLogScroll.CanvasPosition = Vector2.new(0, 99999)
-end)
-
--- Sample initial ORC system log
-local function addOrcLog(text, color)
-    local l = Instance.new("TextLabel")
-    l.Size = UDim2.new(1, 0, 0, 18)
-    l.BackgroundTransparency = 1
-    l.Text = text
-    l.TextColor3 = color or C_WHITE
-    l.Font = Enum.Font.Code
-    l.TextSize = 10
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.Parent = orcLogScroll
+    scrollFrame.CanvasPosition = Vector2.new(0, 99999)
 end
 
-addOrcLog("[ORC] Engine Hooked successfully.", Color3.fromRGB(120, 255, 140))
-addOrcLog("[ORC] Standalone Workspace sandboxed to /sdcard/ORC/workspace", C_MUTED)
-addOrcLog("[ORC] Memory Protection Layer active.", C_MUTED)
+-- Hook LogService: Real-Time Full Roblox Engine Message Extraction
+LogService.MessageOut:Connect(function(message, messageType)
+    local targetColor = C_WHITE
+    local targetTag = "[INFO]"
+
+    if messageType == Enum.MessageType.MessageError then
+        targetColor = Color3.fromRGB(255, 75, 75) -- RED
+        targetTag = "[ERROR]"
+    elseif messageType == Enum.MessageType.MessageWarning then
+        targetColor = Color3.fromRGB(255, 205, 60) -- YELLOW
+        targetTag = "[WARN]"
+    elseif messageType == Enum.MessageType.MessageInfo then
+        targetColor = Color3.fromRGB(75, 175, 255) -- BLUE
+        targetTag = "[INFO]"
+    else
+        targetColor = Color3.fromRGB(210, 210, 215) -- NORMAL
+        targetTag = "[OUTPUT]"
+    end
+
+    addLogMessage(rbxPane, message, targetColor, targetTag)
+end)
+
+-- Seed Existing Output History (So it never shows empty!)
+pcall(function()
+    local history = LogService:GetLogHistory()
+    for _, item in ipairs(history) do
+        local col = C_WHITE
+        local tag = "[INFO]"
+        if item.messageType == Enum.MessageType.MessageError then
+            col = Color3.fromRGB(255, 75, 75)
+            tag = "[ERROR]"
+        elseif item.messageType == Enum.MessageType.MessageWarning then
+            col = Color3.fromRGB(255, 205, 60)
+            tag = "[WARN]"
+        elseif item.messageType == Enum.MessageType.MessageInfo then
+            col = Color3.fromRGB(75, 175, 255)
+            tag = "[INFO]"
+        end
+        addLogMessage(rbxPane, item.message, col, tag)
+    end
+end)
+
+-- Initial ORC System Logging
+addLogMessage(orcPane, "ORC Kernel attached.", Color3.fromRGB(75, 255, 120), "[SYSTEM]")
+addLogMessage(orcPane, "Sandbox Path: /sdcard/ORC/workspace", Color3.fromRGB(75, 175, 255), "[SANDBOX]")
+addLogMessage(orcPane, "Execution Engine Ready.", Color3.fromRGB(210, 210, 215), "[READY]")
 
 -- ------------------------------------------------------------------------------
--- 8. PAGE 5: SETTINGS
+-- 9. TAB 5: SETTINGS
 -- ------------------------------------------------------------------------------
 local pageSettings = Instance.new("Frame")
 pageSettings.Name = "Page_Settings"
 pageSettings.Size = UDim2.new(1, 0, 1, 0)
 pageSettings.BackgroundTransparency = 1
 pageSettings.Visible = false
-pageSettings.Parent = viewportBody
-tabPages["Settings"] = pageSettings
+pageSettings.Parent = viewport
+pages["Settings"] = pageSettings
 
-local settingsLabel = Instance.new("TextLabel")
-settingsLabel.Size = UDim2.new(1, 0, 1, 0)
-settingsLabel.BackgroundTransparency = 1
-settingsLabel.Text = "ORC STUDIO // HARDWARE ACCELERATED EXECUTION\nMonochrome UI v1.0.0\nProtected Sandbox Mode: Enabled"
-settingsLabel.TextColor3 = C_MUTED
-settingsLabel.Font = Enum.Font.Code
-settingsLabel.TextSize = 12
-settingsLabel.Parent = pageSettings
+local setInfo = Instance.new("TextLabel")
+setInfo.Size = UDim2.new(1, 0, 1, 0)
+setInfo.BackgroundTransparency = 1
+setInfo.Text = "ORC MOBILE ENGINE // CONFIGURATION\nBuild Profile: arm64-v8a Standalone\nHardware Canvas Rendering: Active"
+setInfo.TextColor3 = C_MUTED
+setInfo.Font = Enum.Font.Code
+setInfo.TextSize = 12
+setInfo.Parent = pageSettings
 
 -- ------------------------------------------------------------------------------
--- 9. TAB SWITCHING LOGIC & ANIMATIONS
+-- 10. TAB NAVIGATION CONTROLLER
 -- ------------------------------------------------------------------------------
 local function switchTab(tabName)
     activeTab = tabName
-    headerTitle.Text = "ORC // " .. string.upper(tabName)
+    titleLabel.Text = "ORC STUDIO // " .. string.upper(tabName)
 
-    for name, page in pairs(tabPages) do
+    for name, page in pairs(pages) do
         page.Visible = (name == tabName)
     end
 
-    for name, btn in pairs(tabButtons) do
-        if name ~= "Minimize" then
+    for name, btn in pairs(buttons) do
+        if name ~= "Close" then
             if name == tabName then
                 btn.BackgroundColor3 = C_WHITE
-                btn.TextColor3 = C_BLACK
+                btn.TextColor3 = Color3.fromRGB(12, 12, 14)
             else
-                btn.BackgroundColor3 = C_DARK_ACCENT
+                btn.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
                 btn.TextColor3 = C_MUTED
             end
         end
     end
 end
 
-btnTerminal.MouseButton1Click:Connect(function() switchTab("Terminal") end)
-btnScripts.MouseButton1Click:Connect(function() switchTab("Scripts") end)
+btnExecutor.MouseButton1Click:Connect(function() switchTab("Executor") end)
+btnSaved.MouseButton1Click:Connect(function() switchTab("Saved") end)
 btnSearch.MouseButton1Click:Connect(function() switchTab("Search") end)
 btnConsole.MouseButton1Click:Connect(function() switchTab("Console") end)
 btnSettings.MouseButton1Click:Connect(function() switchTab("Settings") end)
 
--- Default initial tab
-switchTab("Terminal")
+-- Initial Active Tab
+switchTab("Executor")
 
 -- ------------------------------------------------------------------------------
--- 10. MINIMIZE & RESTORE CONTROLLER
+-- 11. MINIMIZE & RESTORE CONTROLLER (Delta Logic)
 -- ------------------------------------------------------------------------------
-btnMinimize.MouseButton1Click:Connect(function()
-    mainContainer.Visible = false
+btnClose.MouseButton1Click:Connect(function()
+    mainWindow.Visible = false
+    rightDock.Visible = false
     floatingBubble.Visible = true
 end)
 
 floatingBubble.MouseButton1Click:Connect(function()
     floatingBubble.Visible = false
-    mainContainer.Visible = true
+    rightDock.Visible = true
+    mainWindow.Visible = true
 end)
 
-print("[ORC] Delta-Style Monochrome In-Game UI loaded successfully.")
+print("[ORC] Modern Delta-Architecture UI Initialized.")
