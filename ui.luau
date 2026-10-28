@@ -1,7 +1,5 @@
 --[[
-    EnforX UI - Wide • Pure Black & White • Clean Icons
-    Version: 1.2.0
-    By M4X • EVA • AMAL • JANA
+    EnforX UI - Wide 
 ]]
 
 local Players           = game:GetService("Players")
@@ -212,8 +210,8 @@ ProtectGui(ScreenGui)
 -- ==================== MAIN (Wider) ====================
 local Main = Create("Frame", {
     Name = "Main",
-    Size = UDim2.new(0, 520, 0, 540),
-    Position = UDim2.new(0.5, -260, 0.5, -270),
+    Size = UDim2.new(0, 560, 0, 420),
+    Position = UDim2.new(0.5, -280, 0.5, -210),
     BackgroundColor3 = Config.Bg,
     BorderSizePixel = 0,
     ClipsDescendants = true,
@@ -658,7 +656,7 @@ Pages[4] = ConsolePage
 
 -- Side by side on wider layout
 local OrcFrame = Create("Frame", {
-    Size = UDim2.new(0.5, -10, 1, -16),
+    Size = UDim2.new(0.5, -12, 1, -16),
     Position = UDim2.new(0, 8, 0, 8),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
@@ -694,8 +692,8 @@ local OrcScroll = Create("ScrollingFrame", {
 Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = OrcScroll})
 
 local RbxFrame = Create("Frame", {
-    Size = UDim2.new(0.5, -10, 1, -16),
-    Position = UDim2.new(0.5, 2, 0, 8),
+    Size = UDim2.new(0.5, -12, 1, -16),
+    Position = UDim2.new(0.5, 4, 0, 8),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = ConsolePage,
