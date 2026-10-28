@@ -1,841 +1,1201 @@
 --[[
-    NEO UI MOBILE / UI WORKSPACE
-    Version: 2.0 UI
-    Palette: monochrome black / white / neutral gray.
-
-    Design goals:
-      * Touch-friendly mobile layout and draggable floating launcher.
-      * Reusable visual components and independent pages.
-      * Local in-session text drafts and UI preference controls.
-      * Hub search/results are presentation and browsing UI only.
-      * Execute, Run Clipboard, and Hub Execute are visual placeholders.
-
-    Safety / implementation boundary:
-      * This file intentionally contains no script execution implementation.
-      * The execution buttons do not call an executor or run editor text.
-      * Drafts are stored in memory for this UI session only; they are not
-        persisted to disk or to a remote service.
-      * Hub data availability depends on the user's runtime HTTP permissions.
+    EnforX UI - Mobile Optimized • Multi-Language • Multi-Theme
+    Version: 1.1.0
+    By M4X • EVA • AMAL • JANA
 ]]
 
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local LogService = game:GetService("LogService")
-local HttpService = game:GetService("HttpService")
+local Players           = game:GetService("Players")
+local TweenService      = game:GetService("TweenService")
+local UserInputService  = game:GetService("UserInputService")
+local RunService        = game:GetService("RunService")
+local CoreGui           = game:GetService("CoreGui")
 
--- ========= Config =========
-local CONFIG = {
-	Title = "NEO",
-	IconAsset = "", -- rbxassetid://... (optional)
-	BannerAsset = "", -- rbxassetid://... (optional)
-	IconURL = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon.png",
-	BannerURL = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon2.png",
-	SearchAPI = "https://scriptblox.com/api/script/search?q=",
-	MaxLogLines = 200,
+local LocalPlayer = Players.LocalPlayer
+
+--// ==================== LOCALIZATION ====================
+local Languages = {
+    en = {
+        Title           = "EnforX",
+        Executor        = "Executor",
+        Scripts         = "Scripts",
+        Misc            = "Misc",
+        Console         = "Console",
+        Settings        = "Settings",
+        Run             = "Run",
+        Clear           = "Clear",
+        Paste           = "Paste",
+        Copy            = "Copy",
+        SaveCurrent     = "Save Current",
+        Load            = "Load",
+        Delete          = "Delete",
+        ComingSoon      = "Coming Soon...\n\nThis tab is reserved for future features.",
+        OrcConsole      = "ORC Console",
+        RobloxConsole   = "Roblox Console",
+        Language        = "Language",
+        Theme           = "Theme",
+        ShowFPS         = "Show FPS",
+        AutoRejoin      = "Auto Rejoin on Kick",
+        PlaceholderCode = "-- Write your code here\nprint(\"Hello from EnforX\")",
+        SavedScripts    = "Saved Scripts",
+        NoClipboard     = "Clipboard not available",
+        UILoaded        = "UI Loaded Successfully",
+        Ready           = "Interface Ready",
+        Minimize        = "─",
+    },
+    ar = {
+        Title           = "إنفور إكس",
+        Executor        = "المنفذ",
+        Scripts         = "السكريبتات",
+        Misc            = "متنوع",
+        Console         = "الكونسول",
+        Settings        = "الإعدادات",
+        Run             = "تشغيل",
+        Clear           = "مسح",
+        Paste           = "لصق",
+        Copy            = "نسخ",
+        SaveCurrent     = "حفظ الحالي",
+        Load            = "تحميل",
+        Delete          = "حذف",
+        ComingSoon      = "قريباً...\n\nهذا التاب محجوز لمميزات مستقبلية.",
+        OrcConsole      = "كونسول ORC",
+        RobloxConsole   = "كونسول روبلوكس",
+        Language        = "اللغة",
+        Theme           = "السمة",
+        ShowFPS         = "إظهار الفريم",
+        AutoRejoin      = "إعادة الدخول عند الطرد",
+        PlaceholderCode = "-- اكتب الكود هنا\nprint(\"مرحباً من إنفور إكس\")",
+        SavedScripts    = "السكريبتات المحفوظة",
+        NoClipboard     = "الحافظة غير متاحة",
+        UILoaded        = "تم تحميل الواجهة بنجاح",
+        Ready           = "الواجهة جاهزة",
+        Minimize        = "─",
+    },
+    ru = {
+        Title           = "EnforX",
+        Executor        = "Исполнитель",
+        Scripts         = "Скрипты",
+        Misc            = "Разное",
+        Console         = "Консоль",
+        Settings        = "Настройки",
+        Run             = "Запуск",
+        Clear           = "Очистить",
+        Paste           = "Вставить",
+        Copy            = "Копировать",
+        SaveCurrent     = "Сохранить",
+        Load            = "Загрузить",
+        Delete          = "Удалить",
+        ComingSoon      = "Скоро...\n\nЭта вкладка зарезервирована.",
+        OrcConsole      = "ORC Консоль",
+        RobloxConsole   = "Roblox Консоль",
+        Language        = "Язык",
+        Theme           = "Тема",
+        ShowFPS         = "Показать FPS",
+        AutoRejoin      = "Автореjoin при кике",
+        PlaceholderCode = "-- Напишите код здесь\nprint(\"Привет от EnforX\")",
+        SavedScripts    = "Сохранённые скрипты",
+        NoClipboard     = "Буфер обмена недоступен",
+        UILoaded        = "Интерфейс успешно загружен",
+        Ready           = "Интерфейс готов",
+        Minimize        = "─",
+    },
 }
 
-local C = {
-	BG = Color3.fromRGB(8, 8, 8),
-	Panel = Color3.fromRGB(16, 16, 16),
-	Panel2 = Color3.fromRGB(26, 26, 26),
-	Stroke = Color3.fromRGB(55, 55, 55),
-	White = Color3.fromRGB(245, 245, 245),
-	Gray = Color3.fromRGB(150, 150, 150),
-	Black = Color3.fromRGB(0, 0, 0),
+local CurrentLang = "en"
+local function L(key)
+    return (Languages[CurrentLang] and Languages[CurrentLang][key]) or Languages.en[key] or key
+end
+
+--// ==================== THEMES ====================
+local Themes = {
+    Dark = {
+        Accent      = Color3.fromRGB(59, 130, 246),
+        AccentHover = Color3.fromRGB(96, 165, 250),
+        Bg          = Color3.fromRGB(10, 10, 12),
+        BgSecondary = Color3.fromRGB(16, 16, 20),
+        BgTertiary  = Color3.fromRGB(26, 26, 32),
+        Text        = Color3.fromRGB(245, 245, 245),
+        TextDim     = Color3.fromRGB(150, 150, 160),
+        Border      = Color3.fromRGB(40, 40, 48),
+        Success     = Color3.fromRGB(34, 197, 94),
+        Warning     = Color3.fromRGB(234, 179, 8),
+        Error       = Color3.fromRGB(239, 68, 68),
+        Info        = Color3.fromRGB(59, 130, 246),
+    },
+    Midnight = {
+        Accent      = Color3.fromRGB(139, 92, 246),
+        AccentHover = Color3.fromRGB(167, 139, 250),
+        Bg          = Color3.fromRGB(8, 8, 14),
+        BgSecondary = Color3.fromRGB(14, 14, 22),
+        BgTertiary  = Color3.fromRGB(24, 24, 36),
+        Text        = Color3.fromRGB(240, 240, 255),
+        TextDim     = Color3.fromRGB(140, 140, 170),
+        Border      = Color3.fromRGB(40, 40, 60),
+        Success     = Color3.fromRGB(52, 211, 153),
+        Warning     = Color3.fromRGB(251, 191, 36),
+        Error       = Color3.fromRGB(248, 113, 113),
+        Info        = Color3.fromRGB(139, 92, 246),
+    },
+    Ocean = {
+        Accent      = Color3.fromRGB(14, 165, 233),
+        AccentHover = Color3.fromRGB(56, 189, 248),
+        Bg          = Color3.fromRGB(8, 12, 16),
+        BgSecondary = Color3.fromRGB(12, 18, 24),
+        BgTertiary  = Color3.fromRGB(20, 30, 40),
+        Text        = Color3.fromRGB(240, 250, 255),
+        TextDim     = Color3.fromRGB(130, 160, 180),
+        Border      = Color3.fromRGB(30, 50, 65),
+        Success     = Color3.fromRGB(45, 212, 191),
+        Warning     = Color3.fromRGB(250, 204, 21),
+        Error       = Color3.fromRGB(248, 113, 113),
+        Info        = Color3.fromRGB(14, 165, 233),
+    },
+    Light = {
+        Accent      = Color3.fromRGB(37, 99, 235),
+        AccentHover = Color3.fromRGB(59, 130, 246),
+        Bg          = Color3.fromRGB(245, 245, 247),
+        BgSecondary = Color3.fromRGB(255, 255, 255),
+        BgTertiary  = Color3.fromRGB(230, 230, 235),
+        Text        = Color3.fromRGB(20, 20, 25),
+        TextDim     = Color3.fromRGB(100, 100, 110),
+        Border      = Color3.fromRGB(210, 210, 220),
+        Success     = Color3.fromRGB(22, 163, 74),
+        Warning     = Color3.fromRGB(202, 138, 4),
+        Error       = Color3.fromRGB(220, 38, 38),
+        Info        = Color3.fromRGB(37, 99, 235),
+    },
 }
 
--- ========= UI state (intentionally no script execution functions) =========
-local UI = {ClearAfterExecute = false}
-local APP = {
-	Version = "2.0 UI",
-	ActiveTab = "Dashboard",
-	Notifications = {},
-	Drafts = {},
-	SearchHistory = {},
-	Preferences = {FontSize = 12, WordWrap = true, ShowLineNumbers = false, Compact = false},
-	Stats = {Opened = os.time(), Searches = 0, DraftsCreated = 0},
+local CurrentThemeName = "Dark"
+local Config = Themes.Dark
+
+--// ==================== UTILITIES ====================
+local function Create(class, props)
+    local inst = Instance.new(class)
+    for k, v in pairs(props or {}) do
+        if k ~= "Parent" then
+            inst[k] = v
+        end
+    end
+    if props and props.Parent then
+        inst.Parent = props.Parent
+    end
+    return inst
+end
+
+local function Tween(obj, props, duration)
+    local t = TweenService:Create(obj, TweenInfo.new(duration or 0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
+    t:Play()
+    return t
+end
+
+local function Corner(parent, radius)
+    return Create("UICorner", {CornerRadius = UDim.new(0, radius or 10), Parent = parent})
+end
+
+local function Stroke(parent, color, thickness)
+    return Create("UIStroke", {
+        Color = color or Config.Border,
+        Thickness = thickness or 1,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Parent = parent
+    })
+end
+
+local function Padding(parent, t, b, l, r)
+    return Create("UIPadding", {
+        PaddingTop = UDim.new(0, t or 0),
+        PaddingBottom = UDim.new(0, b or 0),
+        PaddingLeft = UDim.new(0, l or 0),
+        PaddingRight = UDim.new(0, r or 0),
+        Parent = parent
+    })
+end
+
+local function MakeDraggable(frame, handle)
+    handle = handle or frame
+    local dragging, dragStart, startPos
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+--// ==================== PROTECTION ====================
+local function ProtectGui(gui)
+    pcall(function()
+        if syn and syn.protect_gui then syn.protect_gui(gui) end
+        if protect_gui then protect_gui(gui) end
+    end)
+
+    task.spawn(function()
+        while task.wait(1.5) do
+            if not gui or not gui.Parent then
+                pcall(function()
+                    gui.Parent = (gethui and gethui()) or CoreGui
+                end)
+            end
+        end
+    end)
+end
+
+--// ==================== CREATE UI ROOT ====================
+local ScreenGui = Create("ScreenGui", {
+    Name = "EnforX_UI_" .. math.random(10000, 99999),
+    ResetOnSpawn = false,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    DisplayOrder = 999,
+    IgnoreGuiInset = true,
+})
+
+pcall(function()
+    ScreenGui.Parent = (gethui and gethui()) or CoreGui
+end)
+if not ScreenGui.Parent then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+ProtectGui(ScreenGui)
+
+-- ==================== MAIN WINDOW (Phone Size) ====================
+local Main = Create("Frame", {
+    Name = "Main",
+    Size = UDim2.new(0, 340, 0, 560),
+    Position = UDim2.new(0.5, -170, 0.5, -280),
+    BackgroundColor3 = Config.Bg,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+    Parent = ScreenGui,
+})
+Corner(Main, 16)
+local MainStroke = Stroke(Main, Config.Border, 1)
+
+-- Soft shadow
+Create("ImageLabel", {
+    Name = "Shadow",
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, 50, 1, 50),
+    Position = UDim2.new(0, -25, 0, -25),
+    Image = "rbxassetid://6014266941",
+    ImageColor3 = Color3.fromRGB(0, 0, 0),
+    ImageTransparency = 0.5,
+    ScaleType = Enum.ScaleType.Slice,
+    SliceCenter = Rect.new(49, 49, 450, 450),
+    ZIndex = 0,
+    Parent = Main,
+})
+
+-- Title Bar
+local TitleBar = Create("Frame", {
+    Name = "TitleBar",
+    Size = UDim2.new(1, 0, 0, 44),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    Parent = Main,
+})
+Corner(TitleBar, 16)
+Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 16),
+    Position = UDim2.new(0, 0, 1, -16),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    Parent = TitleBar,
+})
+
+local TitleLabel = Create("TextLabel", {
+    Name = "Title",
+    Size = UDim2.new(1, -90, 1, 0),
+    Position = UDim2.new(0, 14, 0, 0),
+    BackgroundTransparency = 1,
+    Text = L("Title") .. "  •  v1.1",
+    TextColor3 = Config.Text,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = TitleBar,
+})
+
+local MinBtn = Create("TextButton", {
+    Name = "Minimize",
+    Size = UDim2.new(0, 32, 0, 32),
+    Position = UDim2.new(1, -40, 0.5, -16),
+    BackgroundColor3 = Config.BgTertiary,
+    Text = "─",
+    TextColor3 = Config.Text,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    AutoButtonColor = false,
+    Parent = TitleBar,
+})
+Corner(MinBtn, 9)
+
+MinBtn.MouseEnter:Connect(function() Tween(MinBtn, {BackgroundColor3 = Config.Accent}, 0.15) end)
+MinBtn.MouseLeave:Connect(function() Tween(MinBtn, {BackgroundColor3 = Config.BgTertiary}, 0.15) end)
+
+MakeDraggable(Main, TitleBar)
+
+-- ==================== SIDEBAR ====================
+local Sidebar = Create("Frame", {
+    Name = "Sidebar",
+    Size = UDim2.new(0, 58, 1, -44),
+    Position = UDim2.new(0, 0, 0, 44),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    Parent = Main,
+})
+
+local SideLayout = Create("UIListLayout", {
+    Padding = UDim.new(0, 6),
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = Sidebar,
+})
+Padding(Sidebar, 10, 10, 0, 0)
+
+local Content = Create("Frame", {
+    Name = "Content",
+    Size = UDim2.new(1, -58, 1, -44),
+    Position = UDim2.new(0, 58, 0, 44),
+    BackgroundColor3 = Config.Bg,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+    Parent = Main,
+})
+
+-- ==================== TABS DATA ====================
+local TabData = {
+    {Key = "Executor", Icon = "⌨️"},
+    {Key = "Scripts",  Icon = "📁"},
+    {Key = "Misc",     Icon = "⚡"},
+    {Key = "Console",  Icon = "📟"},
+    {Key = "Settings", Icon = "⚙️"},
 }
 
--- ========= Helpers =========
-local function make(class, props, parent)
-	local o = Instance.new(class)
-	for k, v in pairs(props) do o[k] = v end
-	if parent then o.Parent = parent end
-	return o
-end
-local function corner(o, r) return make("UICorner", {CornerRadius = UDim.new(0, r or 6)}, o) end
-local function stroke(o) return make("UIStroke", {Color = C.Stroke, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border}, o) end
-local function hover(b, n, h)
-	b.MouseEnter:Connect(function() TweenService:Create(b, TweenInfo.new(0.1), {BackgroundColor3 = h}):Play() end)
-	b.MouseLeave:Connect(function() TweenService:Create(b, TweenInfo.new(0.1), {BackgroundColor3 = n}):Play() end)
-end
-local function button(parent, text, size, pos, primary, ts)
-	local bg = primary and C.White or C.Panel2
-	local b = make("TextButton", {
-		Size = size, Position = pos or UDim2.new(), BackgroundColor3 = bg, Text = text,
-		TextColor3 = primary and C.Black or C.White, Font = Enum.Font.GothamBold,
-		TextSize = ts or 11, AutoButtonColor = false,
-	}, parent)
-	corner(b, 6)
-	if not primary then stroke(b) end
-	hover(b, bg, primary and Color3.fromRGB(210, 210, 210) or C.Stroke)
-	return b
+local Pages = {}
+local TabButtons = {}
+local CurrentTab = 1
+local UIElements = {} -- for live theme / language updates
+
+local function SwitchTab(index)
+    if CurrentTab == index then return end
+    CurrentTab = index
+    for i, page in pairs(Pages) do
+        page.Visible = (i == index)
+    end
+    for i, btn in pairs(TabButtons) do
+        if i == index then
+            Tween(btn, {BackgroundColor3 = Config.Accent}, 0.18)
+            btn.TextColor3 = Color3.new(1, 1, 1)
+        else
+            Tween(btn, {BackgroundColor3 = Config.BgTertiary}, 0.18)
+            btn.TextColor3 = Config.TextDim
+        end
+    end
 end
 
-local function remoteImage(url, name)
-	local ok, res = pcall(function()
-		if not (writefile and getcustomasset and (request or http_request)) then return nil end
-		local r = (request or http_request)({Url = url, Method = "GET"})
-		if r and r.Body then writefile(name, r.Body) return getcustomasset(name) end
-	end)
-	return ok and res or nil
+for i, tab in ipairs(TabData) do
+    local btn = Create("TextButton", {
+        Name = tab.Key,
+        Size = UDim2.new(0, 44, 0, 44),
+        BackgroundColor3 = (i == 1) and Config.Accent or Config.BgTertiary,
+        Text = tab.Icon,
+        TextColor3 = (i == 1) and Color3.new(1, 1, 1) or Config.TextDim,
+        TextSize = 18,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        LayoutOrder = i,
+        Parent = Sidebar,
+    })
+    Corner(btn, 11)
+
+    btn.MouseEnter:Connect(function()
+        if CurrentTab ~= i then
+            Tween(btn, {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}, 0.12)
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if CurrentTab ~= i then
+            Tween(btn, {BackgroundColor3 = Config.BgTertiary}, 0.12)
+        end
+    end)
+    btn.MouseButton1Click:Connect(function()
+        SwitchTab(i)
+    end)
+
+    TabButtons[i] = btn
 end
 
-local function httpGet(url)
-	local req = request or http_request
-	if req then
-		local r = req({Url = url, Method = "GET"})
-		return r.Body
-	elseif game.HttpGet then
-		return game:HttpGet(url)
-	end
-	return HttpService:GetAsync(url)
+-- ==================== HELPER: Action Button ====================
+local function CreateActionButton(text, color, size, parent)
+    local b = Create("TextButton", {
+        Size = size or UDim2.new(0, 90, 0, 34),
+        BackgroundColor3 = color,
+        Text = text,
+        TextColor3 = Color3.new(1, 1, 1),
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        Parent = parent,
+    })
+    Corner(b, 8)
+    b.MouseEnter:Connect(function()
+        Tween(b, {BackgroundColor3 = color:Lerp(Color3.new(1,1,1), 0.12)}, 0.12)
+    end)
+    b.MouseLeave:Connect(function()
+        Tween(b, {BackgroundColor3 = color}, 0.12)
+    end)
+    return b
 end
 
--- ========= ScreenGui / Window =========
-local parentGui = (gethui and gethui()) or Players.LocalPlayer:WaitForChild("PlayerGui")
-local old = parentGui:FindFirstChild("NeoUI")
-if old then old:Destroy() end
-local gui = make("ScreenGui", {Name = "NeoUI", ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling}, parentGui)
+-- ==================== PAGE 1: EXECUTOR ====================
+local ExecutorPage = Create("Frame", {
+    Name = "Executor",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = true,
+    Parent = Content,
+})
+Pages[1] = ExecutorPage
 
-local camera = workspace.CurrentCamera
-local viewport = camera and camera.ViewportSize or Vector2.new(800, 600)
-local W, H = math.max(280, math.min(440, viewport.X - 20)), math.max(220, math.min(300, viewport.Y - 70))
-local win = make("Frame", {
-	Size = UDim2.fromOffset(W, H), Position = UDim2.new(0.5, -W / 2, 0.5, -H / 2),
-	BackgroundColor3 = C.BG, BorderSizePixel = 0,
-}, gui)
-corner(win, 8); stroke(win)
+local ExecTitle = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 28),
+    Position = UDim2.new(0, 10, 0, 8),
+    BackgroundTransparency = 1,
+    Text = L("Executor"),
+    TextColor3 = Config.Text,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = ExecutorPage,
+})
+UIElements.ExecTitle = ExecTitle
 
--- Top bar
-local top = make("Frame", {Size = UDim2.new(1, 0, 0, 28), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, win)
-corner(top, 8)
-make("Frame", {Size = UDim2.new(1, 0, 0, 8), Position = UDim2.new(0, 0, 1, -8), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, top)
+local CodeBox = Create("TextBox", {
+    Name = "Code",
+    Size = UDim2.new(1, -16, 1, -100),
+    Position = UDim2.new(0, 8, 0, 38),
+    BackgroundColor3 = Config.BgSecondary,
+    Text = L("PlaceholderCode"),
+    TextColor3 = Config.Text,
+    PlaceholderText = "...",
+    PlaceholderColor3 = Config.TextDim,
+    TextSize = 13,
+    Font = Enum.Font.Code,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextYAlignment = Enum.TextYAlignment.Top,
+    MultiLine = true,
+    ClearTextOnFocus = false,
+    TextWrapped = true,
+    BorderSizePixel = 0,
+    Parent = ExecutorPage,
+})
+Corner(CodeBox, 10)
+Padding(CodeBox, 10, 10, 10, 10)
+local CodeStroke = Stroke(CodeBox, Config.Border, 1)
+UIElements.CodeBox = CodeBox
 
-local icon = make("ImageLabel", {
-	Size = UDim2.fromOffset(20, 20), Position = UDim2.fromOffset(6, 4), BackgroundTransparency = 1,
-	Image = CONFIG.IconAsset, ScaleType = Enum.ScaleType.Fit,
-}, top)
-make("TextLabel", {
-	Size = UDim2.new(0, 120, 1, 0), Position = UDim2.fromOffset(32, 0), BackgroundTransparency = 1,
-	Text = CONFIG.Title, TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 14,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, top)
+local ExecBtnHolder = Create("Frame", {
+    Size = UDim2.new(1, -16, 0, 40),
+    Position = UDim2.new(0, 8, 1, -48),
+    BackgroundTransparency = 1,
+    Parent = ExecutorPage,
+})
 
-local closeBtn = button(top, "X", UDim2.fromOffset(22, 22), UDim2.new(1, -26, 0, 3), false, 11)
-local minBtn = button(top, "−", UDim2.fromOffset(22, 22), UDim2.new(1, -52, 0, 3), false, 12)
+local RunBtn   = CreateActionButton(L("Run"),   Config.Accent,     UDim2.new(0, 72, 0, 34), ExecBtnHolder)
+local ClearBtn = CreateActionButton(L("Clear"), Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
+local PasteBtn = CreateActionButton(L("Paste"), Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
+local CopyBtn  = CreateActionButton(L("Copy"),  Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
 
--- Floating launcher: independent of the script execution handlers.
-local makeDraggable
-local floatGui = make("ScreenGui", {Name = "NeoUI_FloatingLauncher", ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 20}, parentGui)
-local floatSize = 46
-local floatButton = make("TextButton", {
-	Name = "NeoFloatingButton", Size = UDim2.fromOffset(floatSize, floatSize),
-	Position = UDim2.new(1, -floatSize - 18, 0.55, 0), BackgroundColor3 = C.Black,
-	Text = "N", TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 19,
-	AutoButtonColor = false, Visible = false, Active = true,
-}, floatGui)
-corner(floatButton, 14)
-local floatStroke = stroke(floatButton)
-floatStroke.Thickness = 2
-floatStroke.Color = C.White
-floatButton.MouseButton1Click:Connect(function()
-	if gui.Parent then
-		win.Visible = true
-		floatButton.Visible = false
-		TweenService:Create(win, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.fromOffset(W, H),
-		}):Play()
-	end
+RunBtn.Position   = UDim2.new(0, 0, 0, 0)
+ClearBtn.Position = UDim2.new(0, 78, 0, 0)
+PasteBtn.Position = UDim2.new(0, 156, 0, 0)
+CopyBtn.Position  = UDim2.new(0, 234, 0, 0)
+
+UIElements.RunBtn = RunBtn
+UIElements.ClearBtn = ClearBtn
+UIElements.PasteBtn = PasteBtn
+UIElements.CopyBtn = CopyBtn
+
+RunBtn.MouseButton1Click:Connect(function()
+    local src = CodeBox.Text
+    if src and #src > 0 then
+        local fn, err = loadstring(src)
+        if fn then
+            task.spawn(function()
+                local ok, result = pcall(fn)
+                if not ok then
+                    warn("[EnforX] " .. tostring(result))
+                end
+            end)
+        else
+            warn("[EnforX] " .. tostring(err))
+        end
+    end
 end)
 
-makeDraggable = function(handle, target)
-	local dragging, dragInput, startInput, startPos
-	handle.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging, dragInput, startInput, startPos = true, input, input.Position, target.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then dragging = false end
-			end)
-		end
-	end)
-	handle.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
-	UIS.InputChanged:Connect(function(input)
-		if dragging and (input == dragInput or input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
-			local delta = input.Position - startInput
-			target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		end
-	end)
-end
-makeDraggable(top, win)
-makeDraggable(floatButton, floatButton)
-
--- Sidebar (5 buttons: Settings pinned at the bottom)
-local side = make("Frame", {Size = UDim2.new(0, 56, 1, -34), Position = UDim2.fromOffset(4, 31), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, win)
-corner(side, 6); stroke(side)
-local tabTop = make("Frame", {Size = UDim2.new(1, -8, 1, -46), Position = UDim2.fromOffset(4, 4), BackgroundTransparency = 1}, side)
-make("UIListLayout", {Padding = UDim.new(0, 4)}, tabTop)
-
-local content = make("Frame", {Size = UDim2.new(1, -68, 1, -34), Position = UDim2.fromOffset(64, 31), BackgroundTransparency = 1}, win)
-
-local pages, tabs = {}, {}
-local function newPage(name)
-	local p = make("Frame", {Name = name, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false}, content)
-	pages[name] = p
-	return p
-end
-local function selectTab(name)
-	for n, p in pairs(pages) do p.Visible = (n == name) end
-	for n, b in pairs(tabs) do
-		local a = (n == name)
-		b.BackgroundColor3 = a and C.White or C.Panel2
-		b.TextColor3 = a and C.Black or C.White
-	end
-end
-local function newTab(name, label, bottom)
-	local b = make("TextButton", {
-		Size = bottom and UDim2.new(1, -8, 0, 32) or UDim2.new(1, 0, 0, 32),
-		Position = bottom and UDim2.new(0, 4, 1, -36) or UDim2.new(),
-		BackgroundColor3 = C.Panel2, Text = label, TextColor3 = C.White,
-		Font = Enum.Font.GothamMedium, TextSize = 10, AutoButtonColor = false,
-	}, bottom and side or tabTop)
-	corner(b, 5)
-	b.MouseButton1Click:Connect(function() selectTab(name) end)
-	tabs[name] = b
-end
-
--- Reusable log view (used by Console and ORC)
-local function makeLog(parent)
-	local box = make("Frame", {Size = UDim2.new(1, 0, 1, -30), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, parent)
-	corner(box, 6); stroke(box)
-	local sc = make("ScrollingFrame", {
-		Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4), BackgroundTransparency = 1,
-		BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = C.Gray,
-		CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
-	}, box)
-	make("UIListLayout", {Padding = UDim.new(0, 1)}, sc)
-	local clear = button(parent, "Clear", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 1, -24), false, 11)
-	local log = {Count = 0}
-	function log.Add(text, dim)
-		log.Count += 1
-		make("TextLabel", {
-			Size = UDim2.new(1, -4, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
-			Text = tostring(text), TextColor3 = dim and C.Gray or C.White, Font = Enum.Font.Code, TextSize = 11,
-			TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = log.Count,
-		}, sc)
-		local kids = {}
-		for _, k in ipairs(sc:GetChildren()) do if k:IsA("TextLabel") then kids[#kids + 1] = k end end
-		if #kids > CONFIG.MaxLogLines then kids[1]:Destroy() end
-		task.defer(function() sc.CanvasPosition = Vector2.new(0, sc.AbsoluteCanvasSize.Y) end)
-	end
-	function log.Clear()
-		for _, k in ipairs(sc:GetChildren()) do if k:IsA("TextLabel") then k:Destroy() end end
-	end
-	clear.MouseButton1Click:Connect(log.Clear)
-	return log
-end
-
--- ======================= Page: Dashboard =======================
-local dashboardPage = newPage("Dashboard")
-newTab("Dashboard", "Home")
-local dashTitle = make("TextLabel", {
-	Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, Text = "NEO UI / MOBILE",
-	TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 16,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, dashboardPage)
-local dashSubtitle = make("TextLabel", {
-	Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 27), BackgroundTransparency = 1,
-	Text = "A monochrome interface workspace", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, dashboardPage)
-local dashCards = make("Frame", {Size = UDim2.new(1, 0, 0, 82), Position = UDim2.fromOffset(0, 54), BackgroundTransparency = 1}, dashboardPage)
-make("UIGridLayout", {CellSize = UDim2.new(0.5, -4, 0, 38), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder}, dashCards)
-local function statCard(parent, titleText, valueText, order)
-	local f = make("Frame", {BackgroundColor3 = C.Panel, BorderSizePixel = 0, LayoutOrder = order or 1}, parent)
-	corner(f, 6); stroke(f)
-	make("TextLabel", {Size = UDim2.new(1, -12, 0, 14), Position = UDim2.fromOffset(6, 4), BackgroundTransparency = 1,
-		Text = titleText, TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 9, TextXAlignment = Enum.TextXAlignment.Left}, f)
-	local val = make("TextLabel", {Size = UDim2.new(1, -12, 0, 18), Position = UDim2.fromOffset(6, 18), BackgroundTransparency = 1,
-		Text = valueText, TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left}, f)
-	return val
-end
-local draftStat = statCard(dashCards, "WORKSPACE", "No draft", 1)
-local searchStat = statCard(dashCards, "HUB SEARCHES", "0", 2)
-local dashSection = make("Frame", {Size = UDim2.new(1, 0, 1, -148), Position = UDim2.fromOffset(0, 144), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, dashboardPage)
-corner(dashSection, 7); stroke(dashSection)
-make("TextLabel", {Size = UDim2.new(1, -16, 0, 22), Position = UDim2.fromOffset(8, 5), BackgroundTransparency = 1,
-	Text = "QUICK ACTIONS", TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left}, dashSection)
-local dashActionBox = make("Frame", {Size = UDim2.new(1, -16, 0, 92), Position = UDim2.fromOffset(8, 31), BackgroundTransparency = 1}, dashSection)
-make("UIGridLayout", {CellSize = UDim2.new(0.5, -4, 0, 28), CellPadding = UDim2.fromOffset(6, 6)}, dashActionBox)
-local dashEditorBtn = button(dashActionBox, "Open Editor", UDim2.new(1, 0, 1, 0), nil, true, 10)
-local dashHubBtn = button(dashActionBox, "Open Hub", UDim2.new(1, 0, 1, 0), nil, false, 10)
-local dashConsoleBtn = button(dashActionBox, "Open Console", UDim2.new(1, 0, 1, 0), nil, false, 10)
-local dashSettingsBtn = button(dashActionBox, "Settings", UDim2.new(1, 0, 1, 0), nil, false, 10)
-make("TextLabel", {Size = UDim2.new(1, -16, 0, 44), Position = UDim2.new(0, 8, 1, -50), BackgroundTransparency = 1,
-	Text = "Interface demo mode: execution buttons are visual placeholders. Editor text, tabs, search results and UI preferences are handled separately.",
-	TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left,
-	TextYAlignment = Enum.TextYAlignment.Top}, dashSection)
-dashEditorBtn.MouseButton1Click:Connect(function() selectTab("Editor") end)
-dashHubBtn.MouseButton1Click:Connect(function() selectTab("Hub") end)
-dashConsoleBtn.MouseButton1Click:Connect(function() selectTab("Console") end)
-dashSettingsBtn.MouseButton1Click:Connect(function() selectTab("Settings") end)
-
--- ======================= Page: Editor =======================
-local editorPage = newPage("Editor")
-newTab("Editor", "Editor")
-
-local ebox = make("Frame", {Size = UDim2.new(1, 0, 1, -84), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, editorPage)
-corner(ebox, 6); stroke(ebox)
-local escroll = make("ScrollingFrame", {
-	Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4), BackgroundTransparency = 1,
-	BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = C.Gray,
-	CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
-}, ebox)
-local editor = make("TextBox", {
-	Size = UDim2.new(1, -4, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
-	Text = "", PlaceholderText = "-- write your script here...", PlaceholderColor3 = C.Gray,
-	TextColor3 = C.White, Font = Enum.Font.Code, TextSize = 12, TextWrapped = true,
-	TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
-	ClearTextOnFocus = false, MultiLine = true,
-}, escroll)
-
-local refreshDrafts
-
--- Editor utility toolbar: local text operations only; no execution functionality.
-local editorTools = make("Frame", {Size = UDim2.new(1, 0, 0, 24), Position = UDim2.new(0, 0, 1, -82), BackgroundTransparency = 1}, editorPage)
-make("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, editorTools)
-local function toolButton(label, width)
-	return button(editorTools, label, UDim2.new(width or 0.25, -3, 1, 0), nil, false, 9)
-end
-local selectAllBtn = toolButton("Select All", 0.25)
-local copyTextBtn = toolButton("Copy Text", 0.25)
-local draftBtn = toolButton("Save Draft", 0.25)
-local statsBtn = toolButton("Text Stats", 0.25)
-selectAllBtn.MouseButton1Click:Connect(function() editor:CaptureFocus(); editor.CursorPosition = #editor.Text + 1; editor.SelectionStart = 1; UI.Notify("All editor text selected") end)
-copyTextBtn.MouseButton1Click:Connect(function()
-	if setclipboard then
-		local ok = pcall(setclipboard, editor.Text)
-		UI.Notify(ok and "Editor text copied" or "Clipboard copy unavailable")
-	else UI.Notify("Clipboard copy unavailable in this environment") end
-end)
-draftBtn.MouseButton1Click:Connect(function()
-	local name = "Draft " .. tostring(#APP.Drafts + 1)
-	APP.Drafts[#APP.Drafts + 1] = {Name = name, Text = editor.Text, SavedAt = os.time()}
-	APP.Stats.DraftsCreated += 1
-	draftStat.Text = name
-	if refreshDrafts then refreshDrafts() end
-	UI.Notify("Saved locally for this UI session: " .. name)
-	UI.Toast("Draft saved for this session")
-end)
-statsBtn.MouseButton1Click:Connect(function()
-	local text = editor.Text
-	local words = 0
-	for _ in string.gmatch(text, "%S+") do words += 1 end
-	local lines = 0
-	for _ in string.gmatch(text .. "\n", "(.-)\n") do lines += 1 end
-	UI.Notify(string.format("Chars: %d | Words: %d | Lines: %d", #text, words, lines))
+ClearBtn.MouseButton1Click:Connect(function()
+    CodeBox.Text = ""
 end)
 
-local status = make("TextLabel", {
-	Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 1, -56), BackgroundTransparency = 1,
-	Text = "Ready", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, editorPage)
-function UI.Notify(msg) status.Text = tostring(msg) end
+PasteBtn.MouseButton1Click:Connect(function()
+    local ok, clip = pcall(function()
+        if getclipboard then return getclipboard() end
+        if syn and syn.clipboard then return syn.clipboard end
+        return nil
+    end)
+    if ok and type(clip) == "string" then
+        CodeBox.Text = clip
+    else
+        warn("[EnforX] " .. L("NoClipboard"))
+    end
+end)
 
--- Lightweight in-app toast; purely visual and safe to call from any UI control.
-local toast = make("TextLabel", {
-	Name = "NeoToast", Size = UDim2.new(1, -24, 0, 30), Position = UDim2.new(0, 12, 0, 34),
-	BackgroundColor3 = C.White, BackgroundTransparency = 0.04, Text = "", TextColor3 = C.Black,
-	Font = Enum.Font.GothamBold, TextSize = 11, TextWrapped = true, Visible = false, ZIndex = 50,
-}, win)
-corner(toast, 7)
-local toastStroke = stroke(toast); toastStroke.Color = C.White
-local toastSerial = 0
-function UI.Toast(message)
-	toastSerial += 1
-	local serial = toastSerial
-	toast.Text = tostring(message)
-	toast.Visible = true
-	toast.TextTransparency = 0
-	toast.BackgroundTransparency = 0.04
-	task.delay(2.2, function()
-		if toast.Parent and serial == toastSerial then
-			TweenService:Create(toast, TweenInfo.new(0.18), {TextTransparency = 1, BackgroundTransparency = 1}):Play()
-			task.delay(0.2, function() if toast.Parent and serial == toastSerial then toast.Visible = false end end)
-		end
-	end)
+CopyBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        if setclipboard then setclipboard(CodeBox.Text)
+        elseif toclipboard then toclipboard(CodeBox.Text)
+        elseif syn and syn.write_clipboard then syn.write_clipboard(CodeBox.Text) end
+    end)
+end)
+
+-- ==================== PAGE 2: SCRIPTS ====================
+local ScriptsPage = Create("Frame", {
+    Name = "Scripts",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = false,
+    Parent = Content,
+})
+Pages[2] = ScriptsPage
+
+local ScriptsTitle = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 28),
+    Position = UDim2.new(0, 10, 0, 8),
+    BackgroundTransparency = 1,
+    Text = L("SavedScripts"),
+    TextColor3 = Config.Text,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = ScriptsPage,
+})
+UIElements.ScriptsTitle = ScriptsTitle
+
+local ScriptsList = Create("ScrollingFrame", {
+    Size = UDim2.new(1, -16, 1, -90),
+    Position = UDim2.new(0, 8, 0, 40),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    ScrollBarImageColor3 = Config.Accent,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    Parent = ScriptsPage,
+})
+Corner(ScriptsList, 10)
+Padding(ScriptsList, 8, 8, 8, 8)
+Create("UIListLayout", {
+    Padding = UDim.new(0, 6),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = ScriptsList,
+})
+
+local SavedScripts = {}
+
+local function RefreshScriptsList()
+    for _, child in ipairs(ScriptsList:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    for i, data in ipairs(SavedScripts) do
+        local item = Create("Frame", {
+            Size = UDim2.new(1, -4, 0, 40),
+            BackgroundColor3 = Config.BgTertiary,
+            BorderSizePixel = 0,
+            LayoutOrder = i,
+            Parent = ScriptsList,
+        })
+        Corner(item, 8)
+
+        Create("TextLabel", {
+            Size = UDim2.new(1, -120, 1, 0),
+            Position = UDim2.new(0, 10, 0, 0),
+            BackgroundTransparency = 1,
+            Text = data.name,
+            TextColor3 = Config.Text,
+            TextSize = 13,
+            Font = Enum.Font.GothamMedium,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = item,
+        })
+
+        local loadB = Create("TextButton", {
+            Size = UDim2.new(0, 50, 0, 26),
+            Position = UDim2.new(1, -108, 0.5, -13),
+            BackgroundColor3 = Config.Accent,
+            Text = L("Load"),
+            TextColor3 = Color3.new(1,1,1),
+            TextSize = 11,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+            Parent = item,
+        })
+        Corner(loadB, 6)
+
+        local delB = Create("TextButton", {
+            Size = UDim2.new(0, 50, 0, 26),
+            Position = UDim2.new(1, -52, 0.5, -13),
+            BackgroundColor3 = Config.Error,
+            Text = L("Delete"),
+            TextColor3 = Color3.new(1,1,1),
+            TextSize = 11,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+            Parent = item,
+        })
+        Corner(delB, 6)
+
+        loadB.MouseButton1Click:Connect(function()
+            CodeBox.Text = data.source
+            SwitchTab(1)
+        end)
+        delB.MouseButton1Click:Connect(function()
+            table.remove(SavedScripts, i)
+            RefreshScriptsList()
+        end)
+    end
 end
 
-local row = make("Frame", {Size = UDim2.new(1, 0, 0, 30), Position = UDim2.new(0, 0, 1, -30), BackgroundTransparency = 1}, editorPage)
-make("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 5)}, row)
-local third = UDim2.new(1 / 3, -4, 1, 0)
-local runClip = button(row, "Run Clipboard", third, nil, false, 10)
-local runBtn = button(row, "Execute", third, nil, true, 11)
-local clearBtn = button(row, "Clear", third, nil, false, 10)
+local SaveBtn = CreateActionButton(L("SaveCurrent"), Config.Accent, UDim2.new(0, 130, 0, 34), ScriptsPage)
+SaveBtn.Position = UDim2.new(0, 8, 1, -48)
+UIElements.SaveBtn = SaveBtn
 
-runClip.MouseButton1Click:Connect(function()
-	UI.Notify("Run Clipboard is a UI placeholder — no execution is connected")
-	UI.Toast("UI-only control; nothing was executed")
+SaveBtn.MouseButton1Click:Connect(function()
+    table.insert(SavedScripts, {
+        name = "Script_" .. (#SavedScripts + 1),
+        source = CodeBox.Text
+    })
+    RefreshScriptsList()
 end)
-runBtn.MouseButton1Click:Connect(function()
-	UI.Notify("Execute is a UI placeholder — no execution is connected")
-	UI.Toast("UI-only control; nothing was executed")
-end)
-clearBtn.MouseButton1Click:Connect(function() editor.Text = ""; UI.Notify("Editor cleared") end)
 
--- ======================= Page: Drafts =======================
-local draftsPage = newPage("Drafts")
-newTab("Drafts", "Drafts")
-local draftsHeading = make("TextLabel", {Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1,
-	Text = "SESSION DRAFTS", TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 13,
-	TextXAlignment = Enum.TextXAlignment.Left}, draftsPage)
-local draftsHint = make("TextLabel", {Size = UDim2.new(1, 0, 0, 28), Position = UDim2.fromOffset(0, 23), BackgroundTransparency = 1,
-	Text = "Drafts remain in memory only and disappear when this UI session ends.", TextColor3 = C.Gray,
-	Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left,
-	TextYAlignment = Enum.TextYAlignment.Top}, draftsPage)
-local draftsList = make("ScrollingFrame", {Name = "DraftList", Size = UDim2.new(1, 0, 1, -58), Position = UDim2.fromOffset(0, 54),
-	BackgroundColor3 = C.Panel, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = C.Gray,
-	CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, draftsPage)
-corner(draftsList, 6); stroke(draftsList)
-make("UIListLayout", {Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder}, draftsList)
-make("UIPadding", {PaddingTop = UDim.new(0, 5), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5), PaddingBottom = UDim.new(0, 5)}, draftsList)
-refreshDrafts = function()
-	for _, child in ipairs(draftsList:GetChildren()) do
-		if child:IsA("Frame") then child:Destroy() end
-	end
-	if #APP.Drafts == 0 then
-		local empty = make("TextLabel", {Size = UDim2.new(1, -8, 0, 40), BackgroundTransparency = 1,
-			Text = "No drafts yet. Open Editor and press Save Draft.", TextColor3 = C.Gray,
-			Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true}, draftsList)
-		return
-	end
-	for index = #APP.Drafts, 1, -1 do
-		local draft = APP.Drafts[index]
-		local rowFrame = make("Frame", {Size = UDim2.new(1, -2, 0, 48), BackgroundColor3 = C.Panel2,
-			BorderSizePixel = 0, LayoutOrder = #APP.Drafts - index + 1}, draftsList)
-		corner(rowFrame, 5); stroke(rowFrame)
-		make("TextLabel", {Size = UDim2.new(1, -116, 0, 18), Position = UDim2.fromOffset(7, 4), BackgroundTransparency = 1,
-			Text = draft.Name, TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 10,
-			TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, rowFrame)
-		local count = #draft.Text
-		make("TextLabel", {Size = UDim2.new(1, -116, 0, 16), Position = UDim2.fromOffset(7, 23), BackgroundTransparency = 1,
-			Text = tostring(count) .. " characters", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 9,
-			TextXAlignment = Enum.TextXAlignment.Left}, rowFrame)
-		local load = button(rowFrame, "Load", UDim2.fromOffset(44, 26), UDim2.new(1, -98, 0.5, -13), true, 9)
-		local delete = button(rowFrame, "Delete", UDim2.fromOffset(46, 26), UDim2.new(1, -49, 0.5, -13), false, 9)
-		load.MouseButton1Click:Connect(function()
-			editor.Text = draft.Text
-			selectTab("Editor")
-			UI.Notify("Loaded " .. draft.Name)
-		end)
-		delete.MouseButton1Click:Connect(function()
-			table.remove(APP.Drafts, index)
-			refreshDrafts()
-			draftStat.Text = APP.Drafts[#APP.Drafts] and APP.Drafts[#APP.Drafts].Name or "No draft"
-			UI.Notify("Draft removed")
-		end)
-	end
+-- ==================== PAGE 3: MISC ====================
+local MiscPage = Create("Frame", {
+    Name = "Misc",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = false,
+    Parent = Content,
+})
+Pages[3] = MiscPage
+
+local MiscLabel = Create("TextLabel", {
+    Size = UDim2.new(1, -20, 1, -20),
+    Position = UDim2.new(0, 10, 0, 10),
+    BackgroundTransparency = 1,
+    Text = L("ComingSoon"),
+    TextColor3 = Config.TextDim,
+    TextSize = 14,
+    Font = Enum.Font.Gotham,
+    TextXAlignment = Enum.TextXAlignment.Center,
+    TextYAlignment = Enum.TextYAlignment.Center,
+    Parent = MiscPage,
+})
+UIElements.MiscLabel = MiscLabel
+
+-- ==================== PAGE 4: CONSOLE ====================
+local ConsolePage = Create("Frame", {
+    Name = "Console",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = false,
+    Parent = Content,
+})
+Pages[4] = ConsolePage
+
+-- ORC (Top half on mobile for better space)
+local OrcFrame = Create("Frame", {
+    Size = UDim2.new(1, -16, 0.5, -10),
+    Position = UDim2.new(0, 8, 0, 8),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    Parent = ConsolePage,
+})
+Corner(OrcFrame, 10)
+Stroke(OrcFrame, Config.Border, 1)
+
+local OrcTitle = Create("TextLabel", {
+    Size = UDim2.new(1, 0, 0, 28),
+    BackgroundColor3 = Config.BgTertiary,
+    Text = "  " .. L("OrcConsole"),
+    TextColor3 = Config.Text,
+    TextSize = 12,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    BorderSizePixel = 0,
+    Parent = OrcFrame,
+})
+Corner(OrcTitle, 10)
+UIElements.OrcTitle = OrcTitle
+
+local OrcScroll = Create("ScrollingFrame", {
+    Size = UDim2.new(1, -8, 1, -34),
+    Position = UDim2.new(0, 4, 0, 30),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    ScrollBarImageColor3 = Config.Accent,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    Parent = OrcFrame,
+})
+Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = OrcScroll})
+
+-- Roblox Console
+local RbxFrame = Create("Frame", {
+    Size = UDim2.new(1, -16, 0.5, -10),
+    Position = UDim2.new(0, 8, 0.5, 2),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    Parent = ConsolePage,
+})
+Corner(RbxFrame, 10)
+Stroke(RbxFrame, Config.Border, 1)
+
+local RbxTitle = Create("TextLabel", {
+    Size = UDim2.new(1, 0, 0, 28),
+    BackgroundColor3 = Config.BgTertiary,
+    Text = "  " .. L("RobloxConsole"),
+    TextColor3 = Config.Text,
+    TextSize = 12,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    BorderSizePixel = 0,
+    Parent = RbxFrame,
+})
+Corner(RbxTitle, 10)
+UIElements.RbxTitle = RbxTitle
+
+local RbxScroll = Create("ScrollingFrame", {
+    Size = UDim2.new(1, -8, 1, -34),
+    Position = UDim2.new(0, 4, 0, 30),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    ScrollBarImageColor3 = Config.Accent,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    Parent = RbxFrame,
+})
+Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = RbxScroll})
+
+local function AddLog(scroll, text, color)
+    local lbl = Create("TextLabel", {
+        Size = UDim2.new(1, -4, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1,
+        Text = tostring(text),
+        TextColor3 = color or Config.Text,
+        TextSize = 11,
+        Font = Enum.Font.Code,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        RichText = true,
+        Parent = scroll,
+    })
+    local count = 0
+    for _, c in ipairs(scroll:GetChildren()) do
+        if c:IsA("TextLabel") then count += 1 end
+    end
+    if count > 150 then
+        for _, c in ipairs(scroll:GetChildren()) do
+            if c:IsA("TextLabel") then c:Destroy() break end
+        end
+    end
+    task.defer(function()
+        scroll.CanvasPosition = Vector2.new(0, 99999)
+    end)
 end
 
--- ======================= Page: UI Kit =======================
-local kitPage = newPage("UIKit")
-newTab("UIKit", "UI Kit")
-local kitTitle = make("TextLabel", {Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1,
-	Text = "COMPONENT GALLERY", TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 13,
-	TextXAlignment = Enum.TextXAlignment.Left}, kitPage)
-local kitDescription = make("TextLabel", {Size = UDim2.new(1, 0, 0, 24), Position = UDim2.fromOffset(0, 22), BackgroundTransparency = 1,
-	Text = "Preview reusable monochrome controls and states.", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10,
-	TextXAlignment = Enum.TextXAlignment.Left}, kitPage)
-local kitScroll = make("ScrollingFrame", {Size = UDim2.new(1, 0, 1, -50), Position = UDim2.fromOffset(0, 48),
-	BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = C.Gray,
-	CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, kitPage)
-make("UIListLayout", {Padding = UDim.new(0, 7), SortOrder = Enum.SortOrder.LayoutOrder}, kitScroll)
-local function kitSection(titleText, order)
-	local frame = make("Frame", {Size = UDim2.new(1, -4, 0, 82), BackgroundColor3 = C.Panel,
-		BorderSizePixel = 0, LayoutOrder = order}, kitScroll)
-	corner(frame, 6); stroke(frame)
-	make("TextLabel", {Size = UDim2.new(1, -12, 0, 18), Position = UDim2.fromOffset(6, 3), BackgroundTransparency = 1,
-		Text = titleText, TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 10,
-		TextXAlignment = Enum.TextXAlignment.Left}, frame)
-	return frame
-end
-local kitButtons = kitSection("BUTTON STATES", 1)
-local kitPrimary = button(kitButtons, "Primary", UDim2.new(0.32, -4, 0, 26), UDim2.fromOffset(6, 31), true, 9)
-local kitSecondary = button(kitButtons, "Secondary", UDim2.new(0.32, -4, 0, 26), UDim2.new(0.34, 0, 0, 31), false, 9)
-local kitDisabled = button(kitButtons, "Disabled", UDim2.new(0.32, -4, 0, 26), UDim2.new(0.68, -2, 0, 31), false, 9)
-kitDisabled.Active = false; kitDisabled.TextColor3 = C.Gray; kitDisabled.BackgroundTransparency = 0.35
-kitPrimary.MouseButton1Click:Connect(function() UI.Toast("Primary button preview") end)
-kitSecondary.MouseButton1Click:Connect(function() UI.Toast("Secondary button preview") end)
-local kitFields = kitSection("TEXT FIELD", 2)
-local kitInput = make("TextBox", {Size = UDim2.new(1, -14, 0, 28), Position = UDim2.fromOffset(7, 34),
-	BackgroundColor3 = C.Black, Text = "", PlaceholderText = "Type to preview a field...", PlaceholderColor3 = C.Gray,
-	TextColor3 = C.White, Font = Enum.Font.Gotham, TextSize = 10, ClearTextOnFocus = false,
-	TextXAlignment = Enum.TextXAlignment.Left}, kitFields)
-corner(kitInput, 5); stroke(kitInput); make("UIPadding", {PaddingLeft = UDim.new(0, 7)}, kitInput)
-local kitState = kitSection("INTERACTIVE STATE", 3)
-local kitStateLabel = make("TextLabel", {Size = UDim2.new(1, -100, 0, 24), Position = UDim2.fromOffset(7, 35), BackgroundTransparency = 1,
-	Text = "Preview switch is OFF", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10,
-	TextXAlignment = Enum.TextXAlignment.Left}, kitState)
-local kitSwitch = button(kitState, "OFF", UDim2.fromOffset(62, 26), UDim2.new(1, -69, 0, 34), false, 9)
-local kitOn = false
-kitSwitch.MouseButton1Click:Connect(function()
-	kitOn = not kitOn
-	kitSwitch.Text = kitOn and "ON" or "OFF"
-	kitSwitch.BackgroundColor3 = kitOn and C.White or C.Panel2
-	kitSwitch.TextColor3 = kitOn and C.Black or C.White
-	kitStateLabel.Text = "Preview switch is " .. (kitOn and "ON" or "OFF")
-end)
-
--- ======================= Page: About =======================
-local aboutPage = newPage("About")
-newTab("About", "About")
-local aboutCard = make("Frame", {Size = UDim2.new(1, 0, 0, 154), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, aboutPage)
-corner(aboutCard, 8); stroke(aboutCard)
-make("TextLabel", {Size = UDim2.new(1, -18, 0, 30), Position = UDim2.fromOffset(9, 7), BackgroundTransparency = 1,
-	Text = "NEO UI MOBILE", TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 16,
-	TextXAlignment = Enum.TextXAlignment.Left}, aboutCard)
-make("TextLabel", {Size = UDim2.new(1, -18, 1, -44), Position = UDim2.fromOffset(9, 39), BackgroundTransparency = 1,
-	Text = "Version: " .. APP.Version .. "\nStyle: monochrome black and white\nLayout: touch-friendly, draggable launcher\nDrafts: session-only local memory\nExecution: intentionally not implemented\nHub: search UI depends on HTTP availability",
-	TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true,
-	TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top}, aboutCard)
-local aboutCredits = make("TextLabel", {Size = UDim2.new(1, 0, 0, 42), Position = UDim2.fromOffset(0, 162), BackgroundTransparency = 1,
-	Text = "NEO is an independent interface project. The reference file was used to understand the requested scope, not copied line-for-line.",
-	TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true,
-	TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top}, aboutPage)
-
--- ======================= Page: Hub (search) =======================
--- Same wiring as the example: SearchBox.FocusLost -> HTTP -> JSONDecode -> Add(card) -> click -> popup
-local hubPage = newPage("Hub")
-newTab("Hub", "Hub")
-
-local search = make("TextBox", {
-	Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = C.Panel, Text = "", PlaceholderText = "Search scripts + Enter",
-	PlaceholderColor3 = C.Gray, TextColor3 = C.White, Font = Enum.Font.Gotham, TextSize = 11,
-	ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left,
-}, hubPage)
-corner(search, 6); stroke(search)
-make("UIPadding", {PaddingLeft = UDim.new(0, 8)}, search)
-
-local holder = make("ScrollingFrame", {
-	Name = "Holder", Size = UDim2.new(1, 0, 1, -32), Position = UDim2.fromOffset(0, 32), BackgroundTransparency = 1,
-	BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = C.Gray,
-	CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
-}, hubPage)
-make("UIGridLayout", {CellSize = UDim2.new(0.5, -4, 0, 54), CellPadding = UDim2.fromOffset(4, 4), SortOrder = Enum.SortOrder.LayoutOrder}, holder)
-
-local hubMsg = make("TextLabel", {
-	Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 40), BackgroundTransparency = 1,
-	Text = "Type a keyword and press Enter", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 11,
-}, hubPage)
-
--- Hidden template (cloned for each result)
-local reserved = make("Folder", {Name = "Reserved"}, holder)
-local template = make("TextButton", {
-	Name = "Template", BackgroundColor3 = C.Panel, Text = "", AutoButtonColor = false, Visible = false,
-}, reserved)
-corner(template, 6); stroke(template)
-make("TextLabel", {
-	Name = "Title", Size = UDim2.new(1, -10, 0, 18), Position = UDim2.fromOffset(6, 4), BackgroundTransparency = 1,
-	Text = "", TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 11, TextTruncate = Enum.TextTruncate.AtEnd,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, template)
-make("TextLabel", {
-	Name = "Game", Size = UDim2.new(1, -10, 0, 14), Position = UDim2.fromOffset(6, 22), BackgroundTransparency = 1,
-	Text = "", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextTruncate = Enum.TextTruncate.AtEnd,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, template)
-make("TextLabel", {
-	Name = "Views", Size = UDim2.new(1, -10, 0, 12), Position = UDim2.fromOffset(6, 38), BackgroundTransparency = 1,
-	Text = "", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 9,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, template)
-
--- Popup (Execute / Open in Editor / Copy / Close)
-local selected = {title = "", source = ""}
-local popup = make("Frame", {
-	Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = C.Black, BackgroundTransparency = 0.25,
-	Visible = false, ZIndex = 10, Active = true,
-}, hubPage)
-local card = make("Frame", {
-	Size = UDim2.fromOffset(200, 128), Position = UDim2.new(0.5, -100, 0.5, -64),
-	BackgroundColor3 = C.Panel, ZIndex = 11,
-}, popup)
-corner(card, 8); stroke(card)
-local popTitle = make("TextLabel", {
-	Size = UDim2.new(1, -12, 0, 22), Position = UDim2.fromOffset(6, 4), BackgroundTransparency = 1,
-	Text = "", TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 11, ZIndex = 12,
-	TextTruncate = Enum.TextTruncate.AtEnd,
-}, card)
-local function popBtn(text, y, primary)
-	local b = button(card, text, UDim2.new(1, -16, 0, 22), UDim2.fromOffset(8, y), primary, 10)
-	b.ZIndex = 12
-	return b
-end
-local pExec = popBtn("Execute", 28, true)
-local pEdit = popBtn("Open in Editor", 52, false)
-local pCopy = popBtn("Copy", 76, false)
-local pClose = popBtn("Close", 100, false)
-
-pClose.MouseButton1Click:Connect(function() popup.Visible = false end)
-pExec.MouseButton1Click:Connect(function() popup.Visible = false; UI.Notify("Hub Execute is a UI placeholder — no execution is connected"); UI.Toast("UI-only control; nothing was executed") end)
-pEdit.MouseButton1Click:Connect(function()
-	editor.Text = selected.source
-	popup.Visible = false
-	selectTab("Editor")
-	UI.Notify("Opened in editor — execution is not connected")
-end)
-pCopy.MouseButton1Click:Connect(function()
-	if setclipboard then setclipboard(selected.source); UI.Notify("Copied") end
-	popup.Visible = false
-end)
-
-local hub = {}
-function hub.Add(title, gameName, source, verified, views)
-	local c = template:Clone()
-	c.Visible = true
-	c.Title.Text = (verified and "[V] " or "") .. tostring(title)
-	c.Game.Text = tostring(gameName)
-	c.Views.Text = tostring(views) .. " views"
-	c.Parent = holder
-	c.MouseButton1Click:Connect(function()
-		selected = {title = title, source = source}
-		popTitle.Text = tostring(title)
-		popup.Visible = true
-	end)
+getgenv().EnforX_ORCLog = function(msg, level)
+    local color = Config.Text
+    if level == "warn" then color = Config.Warning
+    elseif level == "error" then color = Config.Error
+    elseif level == "info" then color = Config.Info end
+    AddLog(OrcScroll, msg, color)
 end
 
-search.FocusLost:Connect(function()
-	local q = search.Text
-	if q == "" then return end
-	APP.Stats.Searches += 1
-	searchStat.Text = tostring(APP.Stats.Searches)
-	APP.SearchHistory[#APP.SearchHistory + 1] = q
-	if #APP.SearchHistory > 12 then table.remove(APP.SearchHistory, 1) end
-	for _, v in ipairs(holder:GetChildren()) do if v:IsA("TextButton") and v.Name ~= "Template" then v:Destroy() end end
-	hubMsg.Text = "Searching..."; hubMsg.Visible = true
-	task.spawn(function()
-		local ok, decoded = pcall(function()
-			return HttpService:JSONDecode(httpGet(CONFIG.SearchAPI .. HttpService:UrlEncode(q)))
-		end)
-		if not ok or not decoded or not decoded.result then
-			hubMsg.Text = "Search failed (HTTP not available?)"
-			return
-		end
-		local n = 0
-		for _, s in ipairs(decoded.result.scripts or {}) do
-			if s.scriptType == "free" and s.isPatched == false then
-				hub.Add(s.title, (s.game and s.game.name) or "Universal", s.script, s.verified, s.views or 0)
-				n += 1
-			end
-		end
-		hubMsg.Visible = (n == 0)
-		if n == 0 then hubMsg.Text = "No results" end
-	end)
-end)
-
--- ======================= Page: ORC (to be wired later) =======================
-local orcPage = newPage("ORC")
-newTab("ORC", "ORC")
-local orcLog = makeLog(orcPage)
-orcLog.Add("ORC console ready. Not connected yet.", true)
-UI.ORC = orcLog -- later: UI.ORC.Add("text")
-
--- ======================= Page: Console (game output) =======================
-local consolePage = newPage("Console")
-newTab("Console", "Console")
-local conLog = makeLog(consolePage)
-
-local function typeTag(t)
-	if t == Enum.MessageType.MessageError then return "[ERR] " end
-	if t == Enum.MessageType.MessageWarning then return "[WARN] " end
-	if t == Enum.MessageType.MessageInfo then return "[INFO] " end
-	return ""
+local oldPrint, oldWarn = print, warn
+print = function(...)
+    local t = {}
+    for i = 1, select("#", ...) do t[i] = tostring(select(i, ...)) end
+    AddLog(RbxScroll, table.concat(t, "  "), Config.Text)
+    return oldPrint(...)
 end
-for _, m in ipairs(LogService:GetLogHistory()) do
-	conLog.Add(typeTag(m.messageType) .. m.message, m.messageType == Enum.MessageType.MessageInfo)
-end
-LogService.MessageOut:Connect(function(msg, t)
-	conLog.Add(typeTag(t) .. msg, t == Enum.MessageType.MessageInfo)
-end)
-
--- ======================= Page: Settings (last) =======================
-local setPage = newPage("Settings")
-newTab("Settings", "Settings", true)
-
-local banner = make("ImageLabel", {
-	Size = UDim2.new(1, 0, 0, 56), BackgroundColor3 = C.Black, Image = CONFIG.BannerAsset,
-	ScaleType = Enum.ScaleType.Fit,
-}, setPage)
-corner(banner, 6); stroke(banner)
-
-local function toggle(label, y, default, cb)
-	local r = make("Frame", {Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, y), BackgroundColor3 = C.Panel}, setPage)
-	corner(r, 6); stroke(r)
-	make("TextLabel", {
-		Size = UDim2.new(1, -60, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1,
-		Text = label, TextColor3 = C.White, Font = Enum.Font.GothamMedium, TextSize = 11,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}, r)
-	local state = default
-	local sw = make("TextButton", {
-		Size = UDim2.fromOffset(36, 18), Position = UDim2.new(1, -44, 0.5, -9),
-		BackgroundColor3 = state and C.White or C.Stroke, Text = "", AutoButtonColor = false,
-	}, r)
-	corner(sw, 9)
-	local knob = make("Frame", {
-		Size = UDim2.fromOffset(14, 14), Position = state and UDim2.fromOffset(20, 2) or UDim2.fromOffset(2, 2),
-		BackgroundColor3 = state and C.Black or C.White, BorderSizePixel = 0,
-	}, sw)
-	corner(knob, 7)
-	sw.MouseButton1Click:Connect(function()
-		state = not state
-		TweenService:Create(sw, TweenInfo.new(0.15), {BackgroundColor3 = state and C.White or C.Stroke}):Play()
-		TweenService:Create(knob, TweenInfo.new(0.15), {
-			Position = state and UDim2.fromOffset(20, 2) or UDim2.fromOffset(2, 2),
-			BackgroundColor3 = state and C.Black or C.White,
-		}):Play()
-		cb(state)
-	end)
-end
-toggle("Clear after execute", 62, false, function(v) UI.ClearAfterExecute = v end)
-toggle("Show Console tab", 96, true, function(v) tabs.Console.Visible = v end)
-
-local settingsScroll = make("ScrollingFrame", {
-	Name = "LauncherSettings", Size = UDim2.new(1, 0, 1, -138), Position = UDim2.fromOffset(0, 134),
-	BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2,
-	ScrollBarImageColor3 = C.Gray, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
-}, setPage)
-make("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder}, settingsScroll)
-local function settingLabel(text)
-	return make("TextLabel", {Size = UDim2.new(1, -4, 0, 18), BackgroundTransparency = 1,
-		Text = text, TextColor3 = C.White, Font = Enum.Font.GothamMedium, TextSize = 11,
-		TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = 0}, settingsScroll)
-end
-local function optionRow(labelText, options, initial, callback)
-	local rowFrame = make("Frame", {Size = UDim2.new(1, -4, 0, 34), BackgroundColor3 = C.Panel,
-		BorderSizePixel = 0, LayoutOrder = 1}, settingsScroll)
-	corner(rowFrame, 6); stroke(rowFrame)
-	make("TextLabel", {Size = UDim2.new(0.34, 0, 1, 0), Position = UDim2.fromOffset(8, 0),
-		BackgroundTransparency = 1, Text = labelText, TextColor3 = C.White,
-		Font = Enum.Font.GothamMedium, TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left}, rowFrame)
-	local chosen = initial
-	local optionWidth = 0.64 / #options
-	for index, value in ipairs(options) do
-		local b = make("TextButton", {Size = UDim2.new(optionWidth, -3, 0, 24),
-			Position = UDim2.new(0.35 + (index - 1) * optionWidth, 0, 0.5, -12),
-			BackgroundColor3 = value == chosen and C.White or C.Panel2,
-			Text = value, TextColor3 = value == chosen and C.Black or C.White,
-			Font = Enum.Font.GothamBold, TextSize = 9, AutoButtonColor = false}, rowFrame)
-		corner(b, 5)
-		b.MouseButton1Click:Connect(function()
-			chosen = value
-			for _, sibling in ipairs(rowFrame:GetChildren()) do
-				if sibling:IsA("TextButton") then
-					local active = sibling.Text == chosen
-					sibling.BackgroundColor3 = active and C.White or C.Panel2
-					sibling.TextColor3 = active and C.Black or C.White
-				end
-			end
-			callback(value)
-		end)
-	end
-end
-settingLabel("Floating launcher")
-optionRow("Size", {"Small", "Medium", "Large"}, "Medium", function(value)
-	floatSize = ({Small = 34, Medium = 46, Large = 58})[value]
-	floatButton.Size = UDim2.fromOffset(floatSize, floatSize)
-	floatButton.TextSize = value == "Small" and 15 or (value == "Large" and 23 or 19)
-end)
-optionRow("Shape", {"Circle", "Round", "Square"}, "Round", function(value)
-	local radius = value == "Circle" and UDim.new(0.5, 0) or (value == "Square" and UDim.new(0, 3) or UDim.new(0, 14))
-	floatButton:FindFirstChildOfClass("UICorner").CornerRadius = radius
-end)
-settingLabel("Editor preferences")
-optionRow("Font size", {"Small", "Medium", "Large"}, "Medium", function(value)
-	local sizes = {Small = 10, Medium = 12, Large = 14}
-	APP.Preferences.FontSize = sizes[value]
-	editor.TextSize = sizes[value]
-	UI.Notify("Editor font size: " .. value)
-end)
-optionRow("Text wrap", {"On", "Off"}, "On", function(value)
-	APP.Preferences.WordWrap = value == "On"
-	editor.TextWrapped = APP.Preferences.WordWrap
-	UI.Notify("Text wrap " .. string.lower(value))
-end)
-settingLabel("Interface information")
-local infoCard = make("Frame", {Size = UDim2.new(1, -4, 0, 64), BackgroundColor3 = C.Panel, BorderSizePixel = 0, LayoutOrder = 1}, settingsScroll)
-corner(infoCard, 6); stroke(infoCard)
-make("TextLabel", {Size = UDim2.new(1, -12, 1, -8), Position = UDim2.fromOffset(6, 4), BackgroundTransparency = 1,
-	Text = "NEO UI " .. APP.Version .. "\nMonochrome mobile layout\nExecution controls intentionally have no execution implementation.",
-	TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true,
-	TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top}, infoCard)
-make("TextLabel", {Size = UDim2.new(1, -4, 0, 30), BackgroundTransparency = 1,
-	Text = "Launcher settings apply immediately. Script execution remains unconnected.",
-	TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 10, TextWrapped = true,
-	TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = 2}, settingsScroll)
-
--- ======================= Close / Minimize =======================
-closeBtn.MouseButton1Click:Connect(function()
-	-- Close the window but keep a launcher so it can be reopened.
-	win.Visible = false
-	floatButton.Visible = true
-end)
-minBtn.MouseButton1Click:Connect(function()
-	win.Visible = false
-	floatButton.Visible = true
-end)
-
--- Images
-task.spawn(function()
-	if CONFIG.IconAsset == "" then
-		local i = remoteImage(CONFIG.IconURL, "neo_icon.png")
-		if i then icon.Image = i end
-	end
-	if CONFIG.BannerAsset == "" then
-		local i = remoteImage(CONFIG.BannerURL, "neo_banner.png")
-		if i then banner.Image = i end
-	end
-end)
-
--- Keyboard helpers and responsive viewport bounds.
-UIS.InputBegan:Connect(function(input, processed)
-	if processed then return end
-	if input.KeyCode == Enum.KeyCode.Escape and popup and popup.Visible then
-		popup.Visible = false
-	elseif input.KeyCode == Enum.KeyCode.Escape and win.Visible then
-		win.Visible = false
-		floatButton.Visible = true
-	end
-end)
-local function updateViewport()
-	local cam = workspace.CurrentCamera
-	if not cam or not win.Parent then return end
-	local size = cam.ViewportSize
-	local newW = math.max(280, math.min(440, size.X - 20))
-	local newH = math.max(220, math.min(420, size.Y - 50))
-	W, H = newW, newH
-	if win.Visible then win.Size = UDim2.fromOffset(W, H) end
-end
-if workspace.CurrentCamera then
-	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateViewport)
+warn = function(...)
+    local t = {}
+    for i = 1, select("#", ...) do t[i] = tostring(select(i, ...)) end
+    AddLog(RbxScroll, "[WARN] " .. table.concat(t, "  "), Config.Warning)
+    return oldWarn(...)
 end
 
-refreshDrafts()
-selectTab("Dashboard")
-UI.Notify("Ready — UI-only mode; execution controls are placeholders")
+local function AddClear(parent, scroll)
+    local btn = Create("TextButton", {
+        Size = UDim2.new(0, 46, 0, 20),
+        Position = UDim2.new(1, -52, 0, 4),
+        BackgroundColor3 = Config.Bg,
+        Text = L("Clear"),
+        TextColor3 = Config.TextDim,
+        TextSize = 10,
+        Font = Enum.Font.Gotham,
+        AutoButtonColor = false,
+        Parent = parent,
+    })
+    Corner(btn, 5)
+    btn.MouseButton1Click:Connect(function()
+        for _, c in ipairs(scroll:GetChildren()) do
+            if c:IsA("TextLabel") then c:Destroy() end
+        end
+    end)
+end
+AddClear(OrcFrame, OrcScroll)
+AddClear(RbxFrame, RbxScroll)
+
+AddLog(OrcScroll, "[ORC] " .. L("Ready"), Config.Info)
+AddLog(RbxScroll, "[Roblox] Console hooked", Config.Success)
+
+-- ==================== PAGE 5: SETTINGS ====================
+local SettingsPage = Create("Frame", {
+    Name = "Settings",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = false,
+    Parent = Content,
+})
+Pages[5] = SettingsPage
+
+local SettingsTitle = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 28),
+    Position = UDim2.new(0, 10, 0, 8),
+    BackgroundTransparency = 1,
+    Text = L("Settings"),
+    TextColor3 = Config.Text,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = SettingsPage,
+})
+UIElements.SettingsTitle = SettingsTitle
+
+local SettingsScroll = Create("ScrollingFrame", {
+    Size = UDim2.new(1, -16, 1, -44),
+    Position = UDim2.new(0, 8, 0, 40),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    ScrollBarImageColor3 = Config.Accent,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    Parent = SettingsPage,
+})
+local SettingsLayout = Create("UIListLayout", {
+    Padding = UDim.new(0, 10),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = SettingsScroll,
+})
+Padding(SettingsScroll, 4, 20, 0, 0)
+
+-- Language Section
+local LangSection = Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 90),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    LayoutOrder = 1,
+    Parent = SettingsScroll,
+})
+Corner(LangSection, 10)
+
+local LangLabel = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 26),
+    Position = UDim2.new(0, 12, 0, 8),
+    BackgroundTransparency = 1,
+    Text = L("Language"),
+    TextColor3 = Config.Text,
+    TextSize = 13,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = LangSection,
+})
+UIElements.LangLabel = LangLabel
+
+local LangHolder = Create("Frame", {
+    Size = UDim2.new(1, -20, 0, 36),
+    Position = UDim2.new(0, 10, 0, 40),
+    BackgroundTransparency = 1,
+    Parent = LangSection,
+})
+
+local LangButtons = {}
+local function CreateLangBtn(code, label, x)
+    local b = Create("TextButton", {
+        Size = UDim2.new(0, 90, 0, 32),
+        Position = UDim2.new(0, x, 0, 0),
+        BackgroundColor3 = (CurrentLang == code) and Config.Accent or Config.BgTertiary,
+        Text = label,
+        TextColor3 = Color3.new(1,1,1),
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        Parent = LangHolder,
+    })
+    Corner(b, 8)
+    LangButtons[code] = b
+    return b
+end
+
+local EnBtn = CreateLangBtn("en", "English", 0)
+local ArBtn = CreateLangBtn("ar", "عربي", 96)
+local RuBtn = CreateLangBtn("ru", "Русский", 192)
+
+-- Theme Section
+local ThemeSection = Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 130),
+    BackgroundColor3 = Config.BgSecondary,
+    BorderSizePixel = 0,
+    LayoutOrder = 2,
+    Parent = SettingsScroll,
+})
+Corner(ThemeSection, 10)
+
+local ThemeLabel = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 26),
+    Position = UDim2.new(0, 12, 0, 8),
+    BackgroundTransparency = 1,
+    Text = L("Theme"),
+    TextColor3 = Config.Text,
+    TextSize = 13,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = ThemeSection,
+})
+UIElements.ThemeLabel = ThemeLabel
+
+local ThemeHolder = Create("Frame", {
+    Size = UDim2.new(1, -16, 0, 80),
+    Position = UDim2.new(0, 8, 0, 38),
+    BackgroundTransparency = 1,
+    Parent = ThemeSection,
+})
+
+local ThemeButtons = {}
+local ThemeOrder = {"Dark", "Midnight", "Ocean", "Light"}
+local ThemeDisplay = {Dark = "Dark", Midnight = "Midnight", Ocean = "Ocean", Light = "Light"}
+
+local function CreateThemeBtn(name, index)
+    local col = Themes[name].Accent
+    local b = Create("TextButton", {
+        Size = UDim2.new(0, 68, 0, 32),
+        Position = UDim2.new(0, (index-1) * 74, 0, 0),
+        BackgroundColor3 = (CurrentThemeName == name) and col or Config.BgTertiary,
+        Text = ThemeDisplay[name],
+        TextColor3 = Color3.new(1,1,1),
+        TextSize = 11,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        Parent = ThemeHolder,
+    })
+    Corner(b, 8)
+    ThemeButtons[name] = b
+    return b
+end
+
+for i, name in ipairs(ThemeOrder) do
+    CreateThemeBtn(name, i)
+end
+
+-- Apply Theme Function
+local function ApplyTheme(name)
+    if not Themes[name] then return end
+    CurrentThemeName = name
+    Config = Themes[name]
+
+    -- Update core colors
+    Main.BackgroundColor3 = Config.Bg
+    TitleBar.BackgroundColor3 = Config.BgSecondary
+    TitleBar:FindFirstChildOfClass("Frame").BackgroundColor3 = Config.BgSecondary
+    Sidebar.BackgroundColor3 = Config.BgSecondary
+    Content.BackgroundColor3 = Config.Bg
+    TitleLabel.TextColor3 = Config.Text
+    MinBtn.BackgroundColor3 = Config.BgTertiary
+    MinBtn.TextColor3 = Config.Text
+    MainStroke.Color = Config.Border
+
+    CodeBox.BackgroundColor3 = Config.BgSecondary
+    CodeBox.TextColor3 = Config.Text
+    CodeStroke.Color = Config.Border
+
+    ScriptsList.BackgroundColor3 = Config.BgSecondary
+    ScriptsList.ScrollBarImageColor3 = Config.Accent
+
+    OrcFrame.BackgroundColor3 = Config.BgSecondary
+    RbxFrame.BackgroundColor3 = Config.BgSecondary
+    OrcTitle.BackgroundColor3 = Config.BgTertiary
+    RbxTitle.BackgroundColor3 = Config.BgTertiary
+    OrcTitle.TextColor3 = Config.Text
+    RbxTitle.TextColor3 = Config.Text
+
+    LangSection.BackgroundColor3 = Config.BgSecondary
+    ThemeSection.BackgroundColor3 = Config.BgSecondary
+
+    -- Buttons
+    for i, btn in pairs(TabButtons) do
+        if i == CurrentTab then
+            btn.BackgroundColor3 = Config.Accent
+            btn.TextColor3 = Color3.new(1,1,1)
+        else
+            btn.BackgroundColor3 = Config.BgTertiary
+            btn.TextColor3 = Config.TextDim
+        end
+    end
+
+    RunBtn.BackgroundColor3 = Config.Accent
+    ClearBtn.BackgroundColor3 = Config.BgTertiary
+    PasteBtn.BackgroundColor3 = Config.BgTertiary
+    CopyBtn.BackgroundColor3 = Config.BgTertiary
+    SaveBtn.BackgroundColor3 = Config.Accent
+
+    for code, b in pairs(LangButtons) do
+        b.BackgroundColor3 = (CurrentLang == code) and Config.Accent or Config.BgTertiary
+    end
+    for tname, b in pairs(ThemeButtons) do
+        b.BackgroundColor3 = (CurrentThemeName == tname) and Themes[tname].Accent or Config.BgTertiary
+    end
+
+    -- Text colors
+    ExecTitle.TextColor3 = Config.Text
+    ScriptsTitle.TextColor3 = Config.Text
+    SettingsTitle.TextColor3 = Config.Text
+    MiscLabel.TextColor3 = Config.TextDim
+    LangLabel.TextColor3 = Config.Text
+    ThemeLabel.TextColor3 = Config.Text
+end
+
+-- Apply Language Function
+local function ApplyLanguage(code)
+    if not Languages[code] then return end
+    CurrentLang = code
+
+    TitleLabel.Text = L("Title") .. "  •  v1.1"
+    ExecTitle.Text = L("Executor")
+    ScriptsTitle.Text = L("SavedScripts")
+    SettingsTitle.Text = L("Settings")
+    MiscLabel.Text = L("ComingSoon")
+    OrcTitle.Text = "  " .. L("OrcConsole")
+    RbxTitle.Text = "  " .. L("RobloxConsole")
+    LangLabel.Text = L("Language")
+    ThemeLabel.Text = L("Theme")
+
+    RunBtn.Text   = L("Run")
+    ClearBtn.Text = L("Clear")
+    PasteBtn.Text = L("Paste")
+    CopyBtn.Text  = L("Copy")
+    SaveBtn.Text  = L("SaveCurrent")
+
+    for c, b in pairs(LangButtons) do
+        b.BackgroundColor3 = (CurrentLang == c) and Config.Accent or Config.BgTertiary
+    end
+
+    RefreshScriptsList()
+end
+
+-- Connect language buttons
+EnBtn.MouseButton1Click:Connect(function() ApplyLanguage("en") end)
+ArBtn.MouseButton1Click:Connect(function() ApplyLanguage("ar") end)
+RuBtn.MouseButton1Click:Connect(function() ApplyLanguage("ru") end)
+
+-- Connect theme buttons
+for name, btn in pairs(ThemeButtons) do
+    btn.MouseButton1Click:Connect(function()
+        ApplyTheme(name)
+    end)
+end
+
+-- ==================== FLOATING BUTTON ====================
+local FloatingBtn = Create("TextButton", {
+    Name = "FloatingReopen",
+    Size = UDim2.new(0, 50, 0, 50),
+    Position = UDim2.new(1, -70, 0.55, -25),
+    BackgroundColor3 = Config.Accent,
+    Text = "EX",
+    TextColor3 = Color3.new(1, 1, 1),
+    TextSize = 15,
+    Font = Enum.Font.GothamBlack,
+    AutoButtonColor = false,
+    Visible = false,
+    ZIndex = 50,
+    Parent = ScreenGui,
+})
+Corner(FloatingBtn, 25)
+Stroke(FloatingBtn, Color3.fromRGB(255,255,255), 1.5)
+
+Create("ImageLabel", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, 28, 1, 28),
+    Position = UDim2.new(0, -14, 0, -14),
+    Image = "rbxassetid://6014266941",
+    ImageColor3 = Config.Accent,
+    ImageTransparency = 0.55,
+    ScaleType = Enum.ScaleType.Slice,
+    SliceCenter = Rect.new(49, 49, 450, 450),
+    ZIndex = 49,
+    Parent = FloatingBtn,
+})
+
+MakeDraggable(FloatingBtn)
+
+FloatingBtn.MouseEnter:Connect(function()
+    Tween(FloatingBtn, {Size = UDim2.new(0, 56, 0, 56)}, 0.15)
+end)
+FloatingBtn.MouseLeave:Connect(function()
+    Tween(FloatingBtn, {Size = UDim2.new(0, 50, 0, 50)}, 0.15)
+end)
+
+local function HideMain()
+    Main.Visible = false
+    FloatingBtn.Visible = true
+    FloatingBtn.BackgroundColor3 = Config.Accent
+end
+
+local function ShowMain()
+    FloatingBtn.Visible = false
+    Main.Visible = true
+end
+
+MinBtn.MouseButton1Click:Connect(HideMain)
+FloatingBtn.MouseButton1Click:Connect(ShowMain)
+
+-- ==================== FINAL ====================
+print("[EnforX] " .. L("UILoaded"))
+EnforX_ORCLog("EnforX v1.1 • " .. L("Ready"), "info")
+
+return {
+    ScreenGui = ScreenGui,
+    SwitchTab = SwitchTab,
+    ApplyTheme = ApplyTheme,
+    ApplyLanguage = ApplyLanguage,
+    ORCLog = getgenv().EnforX_ORCLog,
+}
