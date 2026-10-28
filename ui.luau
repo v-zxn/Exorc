@@ -1,13 +1,12 @@
 --[[
-    EnforX UI - Mobile Optimized • Multi-Language • Multi-Theme
-    Version: 1.1.0
+    EnforX UI - Wide • Pure Black & White • Clean Icons
+    Version: 1.2.0
     By M4X • EVA • AMAL • JANA
 ]]
 
 local Players           = game:GetService("Players")
 local TweenService      = game:GetService("TweenService")
 local UserInputService  = game:GetService("UserInputService")
-local RunService        = game:GetService("RunService")
 local CoreGui           = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
@@ -33,14 +32,11 @@ local Languages = {
         RobloxConsole   = "Roblox Console",
         Language        = "Language",
         Theme           = "Theme",
-        ShowFPS         = "Show FPS",
-        AutoRejoin      = "Auto Rejoin on Kick",
         PlaceholderCode = "-- Write your code here\nprint(\"Hello from EnforX\")",
         SavedScripts    = "Saved Scripts",
         NoClipboard     = "Clipboard not available",
         UILoaded        = "UI Loaded Successfully",
         Ready           = "Interface Ready",
-        Minimize        = "─",
     },
     ar = {
         Title           = "إنفور إكس",
@@ -61,14 +57,11 @@ local Languages = {
         RobloxConsole   = "كونسول روبلوكس",
         Language        = "اللغة",
         Theme           = "السمة",
-        ShowFPS         = "إظهار الفريم",
-        AutoRejoin      = "إعادة الدخول عند الطرد",
         PlaceholderCode = "-- اكتب الكود هنا\nprint(\"مرحباً من إنفور إكس\")",
         SavedScripts    = "السكريبتات المحفوظة",
         NoClipboard     = "الحافظة غير متاحة",
         UILoaded        = "تم تحميل الواجهة بنجاح",
         Ready           = "الواجهة جاهزة",
-        Minimize        = "─",
     },
     ru = {
         Title           = "EnforX",
@@ -89,14 +82,11 @@ local Languages = {
         RobloxConsole   = "Roblox Консоль",
         Language        = "Язык",
         Theme           = "Тема",
-        ShowFPS         = "Показать FPS",
-        AutoRejoin      = "Автореjoin при кике",
         PlaceholderCode = "-- Напишите код здесь\nprint(\"Привет от EnforX\")",
         SavedScripts    = "Сохранённые скрипты",
         NoClipboard     = "Буфер обмена недоступен",
         UILoaded        = "Интерфейс успешно загружен",
         Ready           = "Интерфейс готов",
-        Minimize        = "─",
     },
 }
 
@@ -105,91 +95,41 @@ local function L(key)
     return (Languages[CurrentLang] and Languages[CurrentLang][key]) or Languages.en[key] or key
 end
 
---// ==================== THEMES ====================
-local Themes = {
-    Dark = {
-        Accent      = Color3.fromRGB(59, 130, 246),
-        AccentHover = Color3.fromRGB(96, 165, 250),
-        Bg          = Color3.fromRGB(10, 10, 12),
-        BgSecondary = Color3.fromRGB(16, 16, 20),
-        BgTertiary  = Color3.fromRGB(26, 26, 32),
-        Text        = Color3.fromRGB(245, 245, 245),
-        TextDim     = Color3.fromRGB(150, 150, 160),
-        Border      = Color3.fromRGB(40, 40, 48),
-        Success     = Color3.fromRGB(34, 197, 94),
-        Warning     = Color3.fromRGB(234, 179, 8),
-        Error       = Color3.fromRGB(239, 68, 68),
-        Info        = Color3.fromRGB(59, 130, 246),
-    },
-    Midnight = {
-        Accent      = Color3.fromRGB(139, 92, 246),
-        AccentHover = Color3.fromRGB(167, 139, 250),
-        Bg          = Color3.fromRGB(8, 8, 14),
-        BgSecondary = Color3.fromRGB(14, 14, 22),
-        BgTertiary  = Color3.fromRGB(24, 24, 36),
-        Text        = Color3.fromRGB(240, 240, 255),
-        TextDim     = Color3.fromRGB(140, 140, 170),
-        Border      = Color3.fromRGB(40, 40, 60),
-        Success     = Color3.fromRGB(52, 211, 153),
-        Warning     = Color3.fromRGB(251, 191, 36),
-        Error       = Color3.fromRGB(248, 113, 113),
-        Info        = Color3.fromRGB(139, 92, 246),
-    },
-    Ocean = {
-        Accent      = Color3.fromRGB(14, 165, 233),
-        AccentHover = Color3.fromRGB(56, 189, 248),
-        Bg          = Color3.fromRGB(8, 12, 16),
-        BgSecondary = Color3.fromRGB(12, 18, 24),
-        BgTertiary  = Color3.fromRGB(20, 30, 40),
-        Text        = Color3.fromRGB(240, 250, 255),
-        TextDim     = Color3.fromRGB(130, 160, 180),
-        Border      = Color3.fromRGB(30, 50, 65),
-        Success     = Color3.fromRGB(45, 212, 191),
-        Warning     = Color3.fromRGB(250, 204, 21),
-        Error       = Color3.fromRGB(248, 113, 113),
-        Info        = Color3.fromRGB(14, 165, 233),
-    },
-    Light = {
-        Accent      = Color3.fromRGB(37, 99, 235),
-        AccentHover = Color3.fromRGB(59, 130, 246),
-        Bg          = Color3.fromRGB(245, 245, 247),
-        BgSecondary = Color3.fromRGB(255, 255, 255),
-        BgTertiary  = Color3.fromRGB(230, 230, 235),
-        Text        = Color3.fromRGB(20, 20, 25),
-        TextDim     = Color3.fromRGB(100, 100, 110),
-        Border      = Color3.fromRGB(210, 210, 220),
-        Success     = Color3.fromRGB(22, 163, 74),
-        Warning     = Color3.fromRGB(202, 138, 4),
-        Error       = Color3.fromRGB(220, 38, 38),
-        Info        = Color3.fromRGB(37, 99, 235),
-    },
+--// ==================== PURE B&W CONFIG ====================
+local Config = {
+    Bg          = Color3.fromRGB(12, 12, 12),
+    BgSecondary = Color3.fromRGB(20, 20, 20),
+    BgTertiary  = Color3.fromRGB(32, 32, 32),
+    BgHover     = Color3.fromRGB(42, 42, 42),
+    Text        = Color3.fromRGB(245, 245, 245),
+    TextDim     = Color3.fromRGB(140, 140, 140),
+    Border      = Color3.fromRGB(50, 50, 50),
+    Accent      = Color3.fromRGB(255, 255, 255), -- white accent
+    -- Console only colors
+    Success     = Color3.fromRGB(80, 200, 120),
+    Warning     = Color3.fromRGB(230, 180, 40),
+    Error       = Color3.fromRGB(230, 70, 70),
+    Info        = Color3.fromRGB(100, 160, 255),
 }
-
-local CurrentThemeName = "Dark"
-local Config = Themes.Dark
 
 --// ==================== UTILITIES ====================
 local function Create(class, props)
     local inst = Instance.new(class)
     for k, v in pairs(props or {}) do
-        if k ~= "Parent" then
-            inst[k] = v
-        end
+        if k ~= "Parent" then inst[k] = v end
     end
-    if props and props.Parent then
-        inst.Parent = props.Parent
-    end
+    if props and props.Parent then inst.Parent = props.Parent end
     return inst
 end
 
 local function Tween(obj, props, duration)
-    local t = TweenService:Create(obj, TweenInfo.new(duration or 0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
+    local t = TweenService:Create(obj, TweenInfo.new(duration or 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
     t:Play()
     return t
 end
 
 local function Corner(parent, radius)
-    return Create("UICorner", {CornerRadius = UDim.new(0, radius or 10), Parent = parent})
+    return Create("UICorner", {CornerRadius = UDim.new(0, radius or 8), Parent = parent})
 end
 
 local function Stroke(parent, color, thickness)
@@ -236,13 +176,11 @@ local function MakeDraggable(frame, handle)
     end)
 end
 
---// ==================== PROTECTION ====================
 local function ProtectGui(gui)
     pcall(function()
         if syn and syn.protect_gui then syn.protect_gui(gui) end
         if protect_gui then protect_gui(gui) end
     end)
-
     task.spawn(function()
         while task.wait(1.5) do
             if not gui or not gui.Parent then
@@ -254,7 +192,7 @@ local function ProtectGui(gui)
     end)
 end
 
---// ==================== CREATE UI ROOT ====================
+--// ==================== ROOT ====================
 local ScreenGui = Create("ScreenGui", {
     Name = "EnforX_UI_" .. math.random(10000, 99999),
     ResetOnSpawn = false,
@@ -271,20 +209,19 @@ if not ScreenGui.Parent then
 end
 ProtectGui(ScreenGui)
 
--- ==================== MAIN WINDOW (Phone Size) ====================
+-- ==================== MAIN (Wider) ====================
 local Main = Create("Frame", {
     Name = "Main",
-    Size = UDim2.new(0, 340, 0, 560),
-    Position = UDim2.new(0.5, -170, 0.5, -280),
+    Size = UDim2.new(0, 420, 0, 540),
+    Position = UDim2.new(0.5, -210, 0.5, -270),
     BackgroundColor3 = Config.Bg,
     BorderSizePixel = 0,
     ClipsDescendants = true,
     Parent = ScreenGui,
 })
-Corner(Main, 16)
+Corner(Main, 14)
 local MainStroke = Stroke(Main, Config.Border, 1)
 
--- Soft shadow
 Create("ImageLabel", {
     Name = "Shadow",
     BackgroundTransparency = 1,
@@ -302,15 +239,15 @@ Create("ImageLabel", {
 -- Title Bar
 local TitleBar = Create("Frame", {
     Name = "TitleBar",
-    Size = UDim2.new(1, 0, 0, 44),
+    Size = UDim2.new(1, 0, 0, 42),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = Main,
 })
-Corner(TitleBar, 16)
+Corner(TitleBar, 14)
 Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 16),
-    Position = UDim2.new(0, 0, 1, -16),
+    Size = UDim2.new(1, 0, 0, 14),
+    Position = UDim2.new(0, 0, 1, -14),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = TitleBar,
@@ -318,12 +255,12 @@ Create("Frame", {
 
 local TitleLabel = Create("TextLabel", {
     Name = "Title",
-    Size = UDim2.new(1, -90, 1, 0),
+    Size = UDim2.new(1, -80, 1, 0),
     Position = UDim2.new(0, 14, 0, 0),
     BackgroundTransparency = 1,
-    Text = L("Title") .. "  •  v1.1",
+    Text = L("Title") .. "  •  v1.2",
     TextColor3 = Config.Text,
-    TextSize = 15,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = TitleBar,
@@ -331,19 +268,19 @@ local TitleLabel = Create("TextLabel", {
 
 local MinBtn = Create("TextButton", {
     Name = "Minimize",
-    Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -40, 0.5, -16),
+    Size = UDim2.new(0, 30, 0, 30),
+    Position = UDim2.new(1, -38, 0.5, -15),
     BackgroundColor3 = Config.BgTertiary,
     Text = "─",
     TextColor3 = Config.Text,
-    TextSize = 15,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     AutoButtonColor = false,
     Parent = TitleBar,
 })
-Corner(MinBtn, 9)
+Corner(MinBtn, 8)
 
-MinBtn.MouseEnter:Connect(function() Tween(MinBtn, {BackgroundColor3 = Config.Accent}, 0.15) end)
+MinBtn.MouseEnter:Connect(function() Tween(MinBtn, {BackgroundColor3 = Config.BgHover}, 0.15) end)
 MinBtn.MouseLeave:Connect(function() Tween(MinBtn, {BackgroundColor3 = Config.BgTertiary}, 0.15) end)
 
 MakeDraggable(Main, TitleBar)
@@ -351,15 +288,15 @@ MakeDraggable(Main, TitleBar)
 -- ==================== SIDEBAR ====================
 local Sidebar = Create("Frame", {
     Name = "Sidebar",
-    Size = UDim2.new(0, 58, 1, -44),
-    Position = UDim2.new(0, 0, 0, 44),
+    Size = UDim2.new(0, 56, 1, -42),
+    Position = UDim2.new(0, 0, 0, 42),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = Main,
 })
 
-local SideLayout = Create("UIListLayout", {
-    Padding = UDim.new(0, 6),
+Create("UIListLayout", {
+    Padding = UDim.new(0, 5),
     HorizontalAlignment = Enum.HorizontalAlignment.Center,
     SortOrder = Enum.SortOrder.LayoutOrder,
     Parent = Sidebar,
@@ -368,27 +305,26 @@ Padding(Sidebar, 10, 10, 0, 0)
 
 local Content = Create("Frame", {
     Name = "Content",
-    Size = UDim2.new(1, -58, 1, -44),
-    Position = UDim2.new(0, 58, 0, 44),
+    Size = UDim2.new(1, -56, 1, -42),
+    Position = UDim2.new(0, 56, 0, 42),
     BackgroundColor3 = Config.Bg,
     BorderSizePixel = 0,
     ClipsDescendants = true,
     Parent = Main,
 })
 
--- ==================== TABS DATA ====================
+-- Clean icons (Lucide / WindUI style - text based, no colorful emoji)
 local TabData = {
-    {Key = "Executor", Icon = "⌨️"},
-    {Key = "Scripts",  Icon = "📁"},
-    {Key = "Misc",     Icon = "⚡"},
-    {Key = "Console",  Icon = "📟"},
-    {Key = "Settings", Icon = "⚙️"},
+    {Key = "Executor", Icon = "</>" },
+    {Key = "Scripts",  Icon = "≡"  },
+    {Key = "Misc",     Icon = "◆"  },
+    {Key = "Console",  Icon = ">"  },
+    {Key = "Settings", Icon = "⚙"  },
 }
 
 local Pages = {}
 local TabButtons = {}
 local CurrentTab = 1
-local UIElements = {} -- for live theme / language updates
 
 local function SwitchTab(index)
     if CurrentTab == index then return end
@@ -399,7 +335,7 @@ local function SwitchTab(index)
     for i, btn in pairs(TabButtons) do
         if i == index then
             Tween(btn, {BackgroundColor3 = Config.Accent}, 0.18)
-            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.TextColor3 = Config.Bg
         else
             Tween(btn, {BackgroundColor3 = Config.BgTertiary}, 0.18)
             btn.TextColor3 = Config.TextDim
@@ -410,21 +346,21 @@ end
 for i, tab in ipairs(TabData) do
     local btn = Create("TextButton", {
         Name = tab.Key,
-        Size = UDim2.new(0, 44, 0, 44),
+        Size = UDim2.new(0, 42, 0, 42),
         BackgroundColor3 = (i == 1) and Config.Accent or Config.BgTertiary,
         Text = tab.Icon,
-        TextColor3 = (i == 1) and Color3.new(1, 1, 1) or Config.TextDim,
-        TextSize = 18,
+        TextColor3 = (i == 1) and Config.Bg or Config.TextDim,
+        TextSize = 16,
         Font = Enum.Font.GothamBold,
         AutoButtonColor = false,
         LayoutOrder = i,
         Parent = Sidebar,
     })
-    Corner(btn, 11)
+    Corner(btn, 10)
 
     btn.MouseEnter:Connect(function()
         if CurrentTab ~= i then
-            Tween(btn, {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}, 0.12)
+            Tween(btn, {BackgroundColor3 = Config.BgHover}, 0.12)
         end
     end)
     btn.MouseLeave:Connect(function()
@@ -439,24 +375,32 @@ for i, tab in ipairs(TabData) do
     TabButtons[i] = btn
 end
 
--- ==================== HELPER: Action Button ====================
-local function CreateActionButton(text, color, size, parent)
+-- ==================== ACTION BUTTON ====================
+local function CreateActionButton(text, isPrimary, size, parent)
+    local bg = isPrimary and Config.Accent or Config.BgTertiary
+    local fg = isPrimary and Config.Bg or Config.Text
+
     local b = Create("TextButton", {
-        Size = size or UDim2.new(0, 90, 0, 34),
-        BackgroundColor3 = color,
+        Size = size or UDim2.new(0, 80, 0, 32),
+        BackgroundColor3 = bg,
         Text = text,
-        TextColor3 = Color3.new(1, 1, 1),
+        TextColor3 = fg,
         TextSize = 12,
         Font = Enum.Font.GothamBold,
         AutoButtonColor = false,
         Parent = parent,
     })
-    Corner(b, 8)
+    Corner(b, 7)
+
     b.MouseEnter:Connect(function()
-        Tween(b, {BackgroundColor3 = color:Lerp(Color3.new(1,1,1), 0.12)}, 0.12)
+        if isPrimary then
+            Tween(b, {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}, 0.12)
+        else
+            Tween(b, {BackgroundColor3 = Config.BgHover}, 0.12)
+        end
     end)
     b.MouseLeave:Connect(function()
-        Tween(b, {BackgroundColor3 = color}, 0.12)
+        Tween(b, {BackgroundColor3 = bg}, 0.12)
     end)
     return b
 end
@@ -472,22 +416,21 @@ local ExecutorPage = Create("Frame", {
 Pages[1] = ExecutorPage
 
 local ExecTitle = Create("TextLabel", {
-    Size = UDim2.new(1, -16, 0, 28),
+    Size = UDim2.new(1, -16, 0, 26),
     Position = UDim2.new(0, 10, 0, 8),
     BackgroundTransparency = 1,
     Text = L("Executor"),
     TextColor3 = Config.Text,
-    TextSize = 15,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = ExecutorPage,
 })
-UIElements.ExecTitle = ExecTitle
 
 local CodeBox = Create("TextBox", {
     Name = "Code",
-    Size = UDim2.new(1, -16, 1, -100),
-    Position = UDim2.new(0, 8, 0, 38),
+    Size = UDim2.new(1, -16, 1, -92),
+    Position = UDim2.new(0, 8, 0, 36),
     BackgroundColor3 = Config.BgSecondary,
     Text = L("PlaceholderCode"),
     TextColor3 = Config.Text,
@@ -503,32 +446,26 @@ local CodeBox = Create("TextBox", {
     BorderSizePixel = 0,
     Parent = ExecutorPage,
 })
-Corner(CodeBox, 10)
+Corner(CodeBox, 9)
 Padding(CodeBox, 10, 10, 10, 10)
-local CodeStroke = Stroke(CodeBox, Config.Border, 1)
-UIElements.CodeBox = CodeBox
+Stroke(CodeBox, Config.Border, 1)
 
 local ExecBtnHolder = Create("Frame", {
-    Size = UDim2.new(1, -16, 0, 40),
-    Position = UDim2.new(0, 8, 1, -48),
+    Size = UDim2.new(1, -16, 0, 36),
+    Position = UDim2.new(0, 8, 1, -44),
     BackgroundTransparency = 1,
     Parent = ExecutorPage,
 })
 
-local RunBtn   = CreateActionButton(L("Run"),   Config.Accent,     UDim2.new(0, 72, 0, 34), ExecBtnHolder)
-local ClearBtn = CreateActionButton(L("Clear"), Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
-local PasteBtn = CreateActionButton(L("Paste"), Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
-local CopyBtn  = CreateActionButton(L("Copy"),  Config.BgTertiary, UDim2.new(0, 72, 0, 34), ExecBtnHolder)
+local RunBtn   = CreateActionButton(L("Run"),   true,  UDim2.new(0, 78, 0, 32), ExecBtnHolder)
+local ClearBtn = CreateActionButton(L("Clear"), false, UDim2.new(0, 78, 0, 32), ExecBtnHolder)
+local PasteBtn = CreateActionButton(L("Paste"), false, UDim2.new(0, 78, 0, 32), ExecBtnHolder)
+local CopyBtn  = CreateActionButton(L("Copy"),  false, UDim2.new(0, 78, 0, 32), ExecBtnHolder)
 
 RunBtn.Position   = UDim2.new(0, 0, 0, 0)
-ClearBtn.Position = UDim2.new(0, 78, 0, 0)
-PasteBtn.Position = UDim2.new(0, 156, 0, 0)
-CopyBtn.Position  = UDim2.new(0, 234, 0, 0)
-
-UIElements.RunBtn = RunBtn
-UIElements.ClearBtn = ClearBtn
-UIElements.PasteBtn = PasteBtn
-UIElements.CopyBtn = CopyBtn
+ClearBtn.Position = UDim2.new(0, 84, 0, 0)
+PasteBtn.Position = UDim2.new(0, 168, 0, 0)
+CopyBtn.Position  = UDim2.new(0, 252, 0, 0)
 
 RunBtn.MouseButton1Click:Connect(function()
     local src = CodeBox.Text
@@ -537,9 +474,7 @@ RunBtn.MouseButton1Click:Connect(function()
         if fn then
             task.spawn(function()
                 local ok, result = pcall(fn)
-                if not ok then
-                    warn("[EnforX] " .. tostring(result))
-                end
+                if not ok then warn("[EnforX] " .. tostring(result)) end
             end)
         else
             warn("[EnforX] " .. tostring(err))
@@ -547,9 +482,7 @@ RunBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-ClearBtn.MouseButton1Click:Connect(function()
-    CodeBox.Text = ""
-end)
+ClearBtn.MouseButton1Click:Connect(function() CodeBox.Text = "" end)
 
 PasteBtn.MouseButton1Click:Connect(function()
     local ok, clip = pcall(function()
@@ -583,30 +516,29 @@ local ScriptsPage = Create("Frame", {
 Pages[2] = ScriptsPage
 
 local ScriptsTitle = Create("TextLabel", {
-    Size = UDim2.new(1, -16, 0, 28),
+    Size = UDim2.new(1, -16, 0, 26),
     Position = UDim2.new(0, 10, 0, 8),
     BackgroundTransparency = 1,
     Text = L("SavedScripts"),
     TextColor3 = Config.Text,
-    TextSize = 15,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = ScriptsPage,
 })
-UIElements.ScriptsTitle = ScriptsTitle
 
 local ScriptsList = Create("ScrollingFrame", {
-    Size = UDim2.new(1, -16, 1, -90),
-    Position = UDim2.new(0, 8, 0, 40),
+    Size = UDim2.new(1, -16, 1, -86),
+    Position = UDim2.new(0, 8, 0, 38),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Config.Accent,
+    ScrollBarImageColor3 = Color3.fromRGB(180, 180, 180),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Parent = ScriptsPage,
 })
-Corner(ScriptsList, 10)
+Corner(ScriptsList, 9)
 Padding(ScriptsList, 8, 8, 8, 8)
 Create("UIListLayout", {
     Padding = UDim.new(0, 6),
@@ -622,21 +554,21 @@ local function RefreshScriptsList()
     end
     for i, data in ipairs(SavedScripts) do
         local item = Create("Frame", {
-            Size = UDim2.new(1, -4, 0, 40),
+            Size = UDim2.new(1, -4, 0, 38),
             BackgroundColor3 = Config.BgTertiary,
             BorderSizePixel = 0,
             LayoutOrder = i,
             Parent = ScriptsList,
         })
-        Corner(item, 8)
+        Corner(item, 7)
 
         Create("TextLabel", {
-            Size = UDim2.new(1, -120, 1, 0),
+            Size = UDim2.new(1, -118, 1, 0),
             Position = UDim2.new(0, 10, 0, 0),
             BackgroundTransparency = 1,
             Text = data.name,
             TextColor3 = Config.Text,
-            TextSize = 13,
+            TextSize = 12,
             Font = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextTruncate = Enum.TextTruncate.AtEnd,
@@ -644,30 +576,30 @@ local function RefreshScriptsList()
         })
 
         local loadB = Create("TextButton", {
-            Size = UDim2.new(0, 50, 0, 26),
-            Position = UDim2.new(1, -108, 0.5, -13),
+            Size = UDim2.new(0, 48, 0, 24),
+            Position = UDim2.new(1, -104, 0.5, -12),
             BackgroundColor3 = Config.Accent,
             Text = L("Load"),
-            TextColor3 = Color3.new(1,1,1),
+            TextColor3 = Config.Bg,
             TextSize = 11,
             Font = Enum.Font.GothamBold,
             AutoButtonColor = false,
             Parent = item,
         })
-        Corner(loadB, 6)
+        Corner(loadB, 5)
 
         local delB = Create("TextButton", {
-            Size = UDim2.new(0, 50, 0, 26),
-            Position = UDim2.new(1, -52, 0.5, -13),
-            BackgroundColor3 = Config.Error,
+            Size = UDim2.new(0, 48, 0, 24),
+            Position = UDim2.new(1, -50, 0.5, -12),
+            BackgroundColor3 = Config.BgHover,
             Text = L("Delete"),
-            TextColor3 = Color3.new(1,1,1),
+            TextColor3 = Config.Text,
             TextSize = 11,
             Font = Enum.Font.GothamBold,
             AutoButtonColor = false,
             Parent = item,
         })
-        Corner(delB, 6)
+        Corner(delB, 5)
 
         loadB.MouseButton1Click:Connect(function()
             CodeBox.Text = data.source
@@ -680,9 +612,8 @@ local function RefreshScriptsList()
     end
 end
 
-local SaveBtn = CreateActionButton(L("SaveCurrent"), Config.Accent, UDim2.new(0, 130, 0, 34), ScriptsPage)
-SaveBtn.Position = UDim2.new(0, 8, 1, -48)
-UIElements.SaveBtn = SaveBtn
+local SaveBtn = CreateActionButton(L("SaveCurrent"), true, UDim2.new(0, 120, 0, 32), ScriptsPage)
+SaveBtn.Position = UDim2.new(0, 8, 1, -44)
 
 SaveBtn.MouseButton1Click:Connect(function()
     table.insert(SavedScripts, {
@@ -708,13 +639,12 @@ local MiscLabel = Create("TextLabel", {
     BackgroundTransparency = 1,
     Text = L("ComingSoon"),
     TextColor3 = Config.TextDim,
-    TextSize = 14,
+    TextSize = 13,
     Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Center,
     TextYAlignment = Enum.TextYAlignment.Center,
     Parent = MiscPage,
 })
-UIElements.MiscLabel = MiscLabel
 
 -- ==================== PAGE 4: CONSOLE ====================
 local ConsolePage = Create("Frame", {
@@ -726,15 +656,15 @@ local ConsolePage = Create("Frame", {
 })
 Pages[4] = ConsolePage
 
--- ORC (Top half on mobile for better space)
+-- Side by side on wider layout
 local OrcFrame = Create("Frame", {
-    Size = UDim2.new(1, -16, 0.5, -10),
+    Size = UDim2.new(0.5, -10, 1, -16),
     Position = UDim2.new(0, 8, 0, 8),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = ConsolePage,
 })
-Corner(OrcFrame, 10)
+Corner(OrcFrame, 9)
 Stroke(OrcFrame, Config.Border, 1)
 
 local OrcTitle = Create("TextLabel", {
@@ -748,8 +678,7 @@ local OrcTitle = Create("TextLabel", {
     BorderSizePixel = 0,
     Parent = OrcFrame,
 })
-Corner(OrcTitle, 10)
-UIElements.OrcTitle = OrcTitle
+Corner(OrcTitle, 9)
 
 local OrcScroll = Create("ScrollingFrame", {
     Size = UDim2.new(1, -8, 1, -34),
@@ -757,22 +686,21 @@ local OrcScroll = Create("ScrollingFrame", {
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Config.Accent,
+    ScrollBarImageColor3 = Color3.fromRGB(160, 160, 160),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Parent = OrcFrame,
 })
 Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = OrcScroll})
 
--- Roblox Console
 local RbxFrame = Create("Frame", {
-    Size = UDim2.new(1, -16, 0.5, -10),
-    Position = UDim2.new(0, 8, 0.5, 2),
+    Size = UDim2.new(0.5, -10, 1, -16),
+    Position = UDim2.new(0.5, 2, 0, 8),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     Parent = ConsolePage,
 })
-Corner(RbxFrame, 10)
+Corner(RbxFrame, 9)
 Stroke(RbxFrame, Config.Border, 1)
 
 local RbxTitle = Create("TextLabel", {
@@ -786,8 +714,7 @@ local RbxTitle = Create("TextLabel", {
     BorderSizePixel = 0,
     Parent = RbxFrame,
 })
-Corner(RbxTitle, 10)
-UIElements.RbxTitle = RbxTitle
+Corner(RbxTitle, 9)
 
 local RbxScroll = Create("ScrollingFrame", {
     Size = UDim2.new(1, -8, 1, -34),
@@ -795,7 +722,7 @@ local RbxScroll = Create("ScrollingFrame", {
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Config.Accent,
+    ScrollBarImageColor3 = Color3.fromRGB(160, 160, 160),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Parent = RbxFrame,
@@ -803,7 +730,7 @@ local RbxScroll = Create("ScrollingFrame", {
 Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = RbxScroll})
 
 local function AddLog(scroll, text, color)
-    local lbl = Create("TextLabel", {
+    Create("TextLabel", {
         Size = UDim2.new(1, -4, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundTransparency = 1,
@@ -821,7 +748,7 @@ local function AddLog(scroll, text, color)
     for _, c in ipairs(scroll:GetChildren()) do
         if c:IsA("TextLabel") then count += 1 end
     end
-    if count > 150 then
+    if count > 160 then
         for _, c in ipairs(scroll:GetChildren()) do
             if c:IsA("TextLabel") then c:Destroy() break end
         end
@@ -855,8 +782,8 @@ end
 
 local function AddClear(parent, scroll)
     local btn = Create("TextButton", {
-        Size = UDim2.new(0, 46, 0, 20),
-        Position = UDim2.new(1, -52, 0, 4),
+        Size = UDim2.new(0, 44, 0, 20),
+        Position = UDim2.new(1, -50, 0, 4),
         BackgroundColor3 = Config.Bg,
         Text = L("Clear"),
         TextColor3 = Config.TextDim,
@@ -889,48 +816,47 @@ local SettingsPage = Create("Frame", {
 Pages[5] = SettingsPage
 
 local SettingsTitle = Create("TextLabel", {
-    Size = UDim2.new(1, -16, 0, 28),
+    Size = UDim2.new(1, -16, 0, 26),
     Position = UDim2.new(0, 10, 0, 8),
     BackgroundTransparency = 1,
     Text = L("Settings"),
     TextColor3 = Config.Text,
-    TextSize = 15,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = SettingsPage,
 })
-UIElements.SettingsTitle = SettingsTitle
 
 local SettingsScroll = Create("ScrollingFrame", {
-    Size = UDim2.new(1, -16, 1, -44),
-    Position = UDim2.new(0, 8, 0, 40),
+    Size = UDim2.new(1, -16, 1, -40),
+    Position = UDim2.new(0, 8, 0, 36),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Config.Accent,
+    ScrollBarImageColor3 = Color3.fromRGB(160, 160, 160),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Parent = SettingsPage,
 })
-local SettingsLayout = Create("UIListLayout", {
+Create("UIListLayout", {
     Padding = UDim.new(0, 10),
     SortOrder = Enum.SortOrder.LayoutOrder,
     Parent = SettingsScroll,
 })
-Padding(SettingsScroll, 4, 20, 0, 0)
+Padding(SettingsScroll, 4, 16, 0, 0)
 
--- Language Section
+-- Language
 local LangSection = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 90),
+    Size = UDim2.new(1, 0, 0, 86),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
     LayoutOrder = 1,
     Parent = SettingsScroll,
 })
-Corner(LangSection, 10)
+Corner(LangSection, 9)
 
 local LangLabel = Create("TextLabel", {
-    Size = UDim2.new(1, -16, 0, 26),
+    Size = UDim2.new(1, -16, 0, 24),
     Position = UDim2.new(0, 12, 0, 8),
     BackgroundTransparency = 1,
     Text = L("Language"),
@@ -940,174 +866,49 @@ local LangLabel = Create("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = LangSection,
 })
-UIElements.LangLabel = LangLabel
 
 local LangHolder = Create("Frame", {
-    Size = UDim2.new(1, -20, 0, 36),
-    Position = UDim2.new(0, 10, 0, 40),
+    Size = UDim2.new(1, -20, 0, 34),
+    Position = UDim2.new(0, 10, 0, 38),
     BackgroundTransparency = 1,
     Parent = LangSection,
 })
 
 local LangButtons = {}
 local function CreateLangBtn(code, label, x)
+    local isActive = (CurrentLang == code)
     local b = Create("TextButton", {
-        Size = UDim2.new(0, 90, 0, 32),
+        Size = UDim2.new(0, 100, 0, 30),
         Position = UDim2.new(0, x, 0, 0),
-        BackgroundColor3 = (CurrentLang == code) and Config.Accent or Config.BgTertiary,
+        BackgroundColor3 = isActive and Config.Accent or Config.BgTertiary,
         Text = label,
-        TextColor3 = Color3.new(1,1,1),
+        TextColor3 = isActive and Config.Bg or Config.Text,
         TextSize = 12,
         Font = Enum.Font.GothamBold,
         AutoButtonColor = false,
         Parent = LangHolder,
     })
-    Corner(b, 8)
+    Corner(b, 7)
     LangButtons[code] = b
     return b
 end
 
 local EnBtn = CreateLangBtn("en", "English", 0)
-local ArBtn = CreateLangBtn("ar", "عربي", 96)
-local RuBtn = CreateLangBtn("ru", "Русский", 192)
+local ArBtn = CreateLangBtn("ar", "عربي", 108)
+local RuBtn = CreateLangBtn("ru", "Русский", 216)
 
--- Theme Section
-local ThemeSection = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 130),
-    BackgroundColor3 = Config.BgSecondary,
-    BorderSizePixel = 0,
-    LayoutOrder = 2,
-    Parent = SettingsScroll,
-})
-Corner(ThemeSection, 10)
-
-local ThemeLabel = Create("TextLabel", {
-    Size = UDim2.new(1, -16, 0, 26),
-    Position = UDim2.new(0, 12, 0, 8),
-    BackgroundTransparency = 1,
-    Text = L("Theme"),
-    TextColor3 = Config.Text,
-    TextSize = 13,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = ThemeSection,
-})
-UIElements.ThemeLabel = ThemeLabel
-
-local ThemeHolder = Create("Frame", {
-    Size = UDim2.new(1, -16, 0, 80),
-    Position = UDim2.new(0, 8, 0, 38),
-    BackgroundTransparency = 1,
-    Parent = ThemeSection,
-})
-
-local ThemeButtons = {}
-local ThemeOrder = {"Dark", "Midnight", "Ocean", "Light"}
-local ThemeDisplay = {Dark = "Dark", Midnight = "Midnight", Ocean = "Ocean", Light = "Light"}
-
-local function CreateThemeBtn(name, index)
-    local col = Themes[name].Accent
-    local b = Create("TextButton", {
-        Size = UDim2.new(0, 68, 0, 32),
-        Position = UDim2.new(0, (index-1) * 74, 0, 0),
-        BackgroundColor3 = (CurrentThemeName == name) and col or Config.BgTertiary,
-        Text = ThemeDisplay[name],
-        TextColor3 = Color3.new(1,1,1),
-        TextSize = 11,
-        Font = Enum.Font.GothamBold,
-        AutoButtonColor = false,
-        Parent = ThemeHolder,
-    })
-    Corner(b, 8)
-    ThemeButtons[name] = b
-    return b
-end
-
-for i, name in ipairs(ThemeOrder) do
-    CreateThemeBtn(name, i)
-end
-
--- Apply Theme Function
-local function ApplyTheme(name)
-    if not Themes[name] then return end
-    CurrentThemeName = name
-    Config = Themes[name]
-
-    -- Update core colors
-    Main.BackgroundColor3 = Config.Bg
-    TitleBar.BackgroundColor3 = Config.BgSecondary
-    TitleBar:FindFirstChildOfClass("Frame").BackgroundColor3 = Config.BgSecondary
-    Sidebar.BackgroundColor3 = Config.BgSecondary
-    Content.BackgroundColor3 = Config.Bg
-    TitleLabel.TextColor3 = Config.Text
-    MinBtn.BackgroundColor3 = Config.BgTertiary
-    MinBtn.TextColor3 = Config.Text
-    MainStroke.Color = Config.Border
-
-    CodeBox.BackgroundColor3 = Config.BgSecondary
-    CodeBox.TextColor3 = Config.Text
-    CodeStroke.Color = Config.Border
-
-    ScriptsList.BackgroundColor3 = Config.BgSecondary
-    ScriptsList.ScrollBarImageColor3 = Config.Accent
-
-    OrcFrame.BackgroundColor3 = Config.BgSecondary
-    RbxFrame.BackgroundColor3 = Config.BgSecondary
-    OrcTitle.BackgroundColor3 = Config.BgTertiary
-    RbxTitle.BackgroundColor3 = Config.BgTertiary
-    OrcTitle.TextColor3 = Config.Text
-    RbxTitle.TextColor3 = Config.Text
-
-    LangSection.BackgroundColor3 = Config.BgSecondary
-    ThemeSection.BackgroundColor3 = Config.BgSecondary
-
-    -- Buttons
-    for i, btn in pairs(TabButtons) do
-        if i == CurrentTab then
-            btn.BackgroundColor3 = Config.Accent
-            btn.TextColor3 = Color3.new(1,1,1)
-        else
-            btn.BackgroundColor3 = Config.BgTertiary
-            btn.TextColor3 = Config.TextDim
-        end
-    end
-
-    RunBtn.BackgroundColor3 = Config.Accent
-    ClearBtn.BackgroundColor3 = Config.BgTertiary
-    PasteBtn.BackgroundColor3 = Config.BgTertiary
-    CopyBtn.BackgroundColor3 = Config.BgTertiary
-    SaveBtn.BackgroundColor3 = Config.Accent
-
-    for code, b in pairs(LangButtons) do
-        b.BackgroundColor3 = (CurrentLang == code) and Config.Accent or Config.BgTertiary
-    end
-    for tname, b in pairs(ThemeButtons) do
-        b.BackgroundColor3 = (CurrentThemeName == tname) and Themes[tname].Accent or Config.BgTertiary
-    end
-
-    -- Text colors
-    ExecTitle.TextColor3 = Config.Text
-    ScriptsTitle.TextColor3 = Config.Text
-    SettingsTitle.TextColor3 = Config.Text
-    MiscLabel.TextColor3 = Config.TextDim
-    LangLabel.TextColor3 = Config.Text
-    ThemeLabel.TextColor3 = Config.Text
-end
-
--- Apply Language Function
 local function ApplyLanguage(code)
     if not Languages[code] then return end
     CurrentLang = code
 
-    TitleLabel.Text = L("Title") .. "  •  v1.1"
-    ExecTitle.Text = L("Executor")
-    ScriptsTitle.Text = L("SavedScripts")
-    SettingsTitle.Text = L("Settings")
-    MiscLabel.Text = L("ComingSoon")
-    OrcTitle.Text = "  " .. L("OrcConsole")
-    RbxTitle.Text = "  " .. L("RobloxConsole")
-    LangLabel.Text = L("Language")
-    ThemeLabel.Text = L("Theme")
+    TitleLabel.Text     = L("Title") .. "  •  v1.2"
+    ExecTitle.Text      = L("Executor")
+    ScriptsTitle.Text   = L("SavedScripts")
+    SettingsTitle.Text  = L("Settings")
+    MiscLabel.Text      = L("ComingSoon")
+    OrcTitle.Text       = "  " .. L("OrcConsole")
+    RbxTitle.Text       = "  " .. L("RobloxConsole")
+    LangLabel.Text      = L("Language")
 
     RunBtn.Text   = L("Run")
     ClearBtn.Text = L("Clear")
@@ -1116,49 +917,43 @@ local function ApplyLanguage(code)
     SaveBtn.Text  = L("SaveCurrent")
 
     for c, b in pairs(LangButtons) do
-        b.BackgroundColor3 = (CurrentLang == c) and Config.Accent or Config.BgTertiary
+        local active = (CurrentLang == c)
+        b.BackgroundColor3 = active and Config.Accent or Config.BgTertiary
+        b.TextColor3 = active and Config.Bg or Config.Text
     end
 
     RefreshScriptsList()
 end
 
--- Connect language buttons
 EnBtn.MouseButton1Click:Connect(function() ApplyLanguage("en") end)
 ArBtn.MouseButton1Click:Connect(function() ApplyLanguage("ar") end)
 RuBtn.MouseButton1Click:Connect(function() ApplyLanguage("ru") end)
 
--- Connect theme buttons
-for name, btn in pairs(ThemeButtons) do
-    btn.MouseButton1Click:Connect(function()
-        ApplyTheme(name)
-    end)
-end
-
 -- ==================== FLOATING BUTTON ====================
 local FloatingBtn = Create("TextButton", {
     Name = "FloatingReopen",
-    Size = UDim2.new(0, 50, 0, 50),
-    Position = UDim2.new(1, -70, 0.55, -25),
+    Size = UDim2.new(0, 48, 0, 48),
+    Position = UDim2.new(1, -68, 0.55, -24),
     BackgroundColor3 = Config.Accent,
     Text = "EX",
-    TextColor3 = Color3.new(1, 1, 1),
-    TextSize = 15,
+    TextColor3 = Config.Bg,
+    TextSize = 14,
     Font = Enum.Font.GothamBlack,
     AutoButtonColor = false,
     Visible = false,
     ZIndex = 50,
     Parent = ScreenGui,
 })
-Corner(FloatingBtn, 25)
-Stroke(FloatingBtn, Color3.fromRGB(255,255,255), 1.5)
+Corner(FloatingBtn, 24)
+Stroke(FloatingBtn, Color3.fromRGB(255, 255, 255), 1.2)
 
 Create("ImageLabel", {
     BackgroundTransparency = 1,
-    Size = UDim2.new(1, 28, 1, 28),
-    Position = UDim2.new(0, -14, 0, -14),
+    Size = UDim2.new(1, 26, 1, 26),
+    Position = UDim2.new(0, -13, 0, -13),
     Image = "rbxassetid://6014266941",
-    ImageColor3 = Config.Accent,
-    ImageTransparency = 0.55,
+    ImageColor3 = Color3.fromRGB(255, 255, 255),
+    ImageTransparency = 0.65,
     ScaleType = Enum.ScaleType.Slice,
     SliceCenter = Rect.new(49, 49, 450, 450),
     ZIndex = 49,
@@ -1168,34 +963,29 @@ Create("ImageLabel", {
 MakeDraggable(FloatingBtn)
 
 FloatingBtn.MouseEnter:Connect(function()
-    Tween(FloatingBtn, {Size = UDim2.new(0, 56, 0, 56)}, 0.15)
+    Tween(FloatingBtn, {Size = UDim2.new(0, 54, 0, 54)}, 0.15)
 end)
 FloatingBtn.MouseLeave:Connect(function()
-    Tween(FloatingBtn, {Size = UDim2.new(0, 50, 0, 50)}, 0.15)
+    Tween(FloatingBtn, {Size = UDim2.new(0, 48, 0, 48)}, 0.15)
 end)
 
-local function HideMain()
+MinBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
     FloatingBtn.Visible = true
-    FloatingBtn.BackgroundColor3 = Config.Accent
-end
+end)
 
-local function ShowMain()
+FloatingBtn.MouseButton1Click:Connect(function()
     FloatingBtn.Visible = false
     Main.Visible = true
-end
-
-MinBtn.MouseButton1Click:Connect(HideMain)
-FloatingBtn.MouseButton1Click:Connect(ShowMain)
+end)
 
 -- ==================== FINAL ====================
 print("[EnforX] " .. L("UILoaded"))
-EnforX_ORCLog("EnforX v1.1 • " .. L("Ready"), "info")
+EnforX_ORCLog("EnforX v1.2 • " .. L("Ready"), "info")
 
 return {
     ScreenGui = ScreenGui,
     SwitchTab = SwitchTab,
-    ApplyTheme = ApplyTheme,
     ApplyLanguage = ApplyLanguage,
     ORCLog = getgenv().EnforX_ORCLog,
 }
