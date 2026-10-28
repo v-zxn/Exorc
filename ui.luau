@@ -1,5 +1,7 @@
 --[[
-    EnforX UI - Wide 
+    EnforX UI - Wide • Pure Black & White • Clean Icons
+    Version: 1.2.0
+    By M4X • EVA • AMAL • JANA
 ]]
 
 local Players           = game:GetService("Players")
@@ -16,6 +18,7 @@ local Languages = {
         Executor        = "Executor",
         Scripts         = "Scripts",
         Misc            = "Misc",
+        Hub             = "Hub",
         Console         = "Console",
         Settings        = "Settings",
         Run             = "Run",
@@ -41,6 +44,7 @@ local Languages = {
         Executor        = "المنفذ",
         Scripts         = "السكريبتات",
         Misc            = "متنوع",
+        Hub             = "البحث",
         Console         = "الكونسول",
         Settings        = "الإعدادات",
         Run             = "تشغيل",
@@ -66,6 +70,7 @@ local Languages = {
         Executor        = "Исполнитель",
         Scripts         = "Скрипты",
         Misc            = "Разное",
+        Hub             = "Поиск",
         Console         = "Консоль",
         Settings        = "Настройки",
         Run             = "Запуск",
@@ -109,6 +114,11 @@ local Config = {
     Error       = Color3.fromRGB(230, 70, 70),
     Info        = Color3.fromRGB(100, 160, 255),
 }
+
+local IconURL   = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon.png"
+local BannerURL = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon2.png"
+local SearchAPI = "https://scriptblox.com/api/script/search?q="
+
 
 --// ==================== UTILITIES ====================
 local function Create(class, props)
@@ -207,11 +217,35 @@ if not ScreenGui.Parent then
 end
 ProtectGui(ScreenGui)
 
+local function httpGet(url)
+    local req = request or http_request
+    if req then
+        local r = req({Url = url, Method = "GET"})
+        return r and r.Body
+    elseif game.HttpGet then
+        return game:HttpGet(url)
+    end
+    local ok, res = pcall(function() return game:GetService("HttpService"):GetAsync(url) end)
+    return ok and res or nil
+end
+
+local function remoteImage(url, name)
+    local ok, res = pcall(function()
+        if not (writefile and getcustomasset and (request or http_request)) then return nil end
+        local r = (request or http_request)({Url = url, Method = "GET"})
+        if r and r.Body then
+            writefile(name, r.Body)
+            return getcustomasset(name)
+        end
+    end)
+    return ok and res or nil
+end
+
 -- ==================== MAIN (Wider) ====================
 local Main = Create("Frame", {
     Name = "Main",
-    Size = UDim2.new(0, 560, 0, 420),
-    Position = UDim2.new(0.5, -280, 0.5, -210),
+    Size = UDim2.new(0, 460, 0, 360),
+    Position = UDim2.new(0.5, -230, 0.5, -180),
     BackgroundColor3 = Config.Bg,
     BorderSizePixel = 0,
     ClipsDescendants = true,
@@ -251,10 +285,20 @@ Create("Frame", {
     Parent = TitleBar,
 })
 
+local TitleIcon = Create("ImageLabel", {
+    Name = "Icon",
+    Size = UDim2.new(0, 22, 0, 22),
+    Position = UDim2.new(0, 10, 0.5, -11),
+    BackgroundTransparency = 1,
+    Image = "",
+    ScaleType = Enum.ScaleType.Fit,
+    Parent = TitleBar,
+})
+
 local TitleLabel = Create("TextLabel", {
     Name = "Title",
-    Size = UDim2.new(1, -80, 1, 0),
-    Position = UDim2.new(0, 14, 0, 0),
+    Size = UDim2.new(1, -100, 1, 0),
+    Position = UDim2.new(0, 38, 0, 0),
     BackgroundTransparency = 1,
     Text = L("Title") .. "  •  v1.2",
     TextColor3 = Config.Text,
@@ -263,6 +307,11 @@ local TitleLabel = Create("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = TitleBar,
 })
+
+task.spawn(function()
+    local img = remoteImage(IconURL, "enforx_icon.png")
+    if img then TitleIcon.Image = img end
+end)
 
 local MinBtn = Create("TextButton", {
     Name = "Minimize",
@@ -316,7 +365,7 @@ local TabData = {
     {Key = "Executor", Icon = "</>" },
     {Key = "Scripts",  Icon = "≡"  },
     {Key = "Misc",     Icon = "◆"  },
-    {Key = "Console",  Icon = ">"  },
+    {Key = "Hub",      Icon = "⌕"  },
     {Key = "Settings", Icon = "⚙"  },
 }
 
@@ -644,164 +693,248 @@ local MiscLabel = Create("TextLabel", {
     Parent = MiscPage,
 })
 
--- ==================== PAGE 4: CONSOLE ====================
-local ConsolePage = Create("Frame", {
-    Name = "Console",
+-- ==================== PAGE 4: HUB (Script Search) ====================
+local HubPage = Create("Frame", {
+    Name = "Hub",
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundTransparency = 1,
     Visible = false,
     Parent = Content,
 })
-Pages[4] = ConsolePage
+Pages[4] = HubPage
 
--- Side by side on wider layout
-local OrcFrame = Create("Frame", {
-    Size = UDim2.new(0.5, -12, 1, -16),
+local HubSearch = Create("TextBox", {
+    Size = UDim2.new(1, -16, 0, 32),
     Position = UDim2.new(0, 8, 0, 8),
     BackgroundColor3 = Config.BgSecondary,
-    BorderSizePixel = 0,
-    Parent = ConsolePage,
-})
-Corner(OrcFrame, 9)
-Stroke(OrcFrame, Config.Border, 1)
-
-local OrcTitle = Create("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 28),
-    BackgroundColor3 = Config.BgTertiary,
-    Text = "  " .. L("OrcConsole"),
+    Text = "",
+    PlaceholderText = "Search scripts + Enter...",
+    PlaceholderColor3 = Config.TextDim,
     TextColor3 = Config.Text,
     TextSize = 12,
-    Font = Enum.Font.GothamBold,
+    Font = Enum.Font.Gotham,
+    ClearTextOnFocus = false,
     TextXAlignment = Enum.TextXAlignment.Left,
     BorderSizePixel = 0,
-    Parent = OrcFrame,
+    Parent = HubPage,
 })
-Corner(OrcTitle, 9)
+Corner(HubSearch, 8)
+Stroke(HubSearch, Config.Border, 1)
+Padding(HubSearch, 0, 0, 10, 10)
 
-local OrcScroll = Create("ScrollingFrame", {
-    Size = UDim2.new(1, -8, 1, -34),
-    Position = UDim2.new(0, 4, 0, 30),
+local HubMsg = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 20),
+    Position = UDim2.new(0, 8, 0, 44),
+    BackgroundTransparency = 1,
+    Text = "Type a keyword and press Enter",
+    TextColor3 = Config.TextDim,
+    TextSize = 11,
+    Font = Enum.Font.Gotham,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = HubPage,
+})
+
+local HubHolder = Create("ScrollingFrame", {
+    Size = UDim2.new(1, -16, 1, -72),
+    Position = UDim2.new(0, 8, 0, 66),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 3,
     ScrollBarImageColor3 = Color3.fromRGB(160, 160, 160),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    Parent = OrcFrame,
+    Parent = HubPage,
 })
-Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = OrcScroll})
+Create("UIGridLayout", {
+    CellSize = UDim2.new(0.5, -6, 0, 56),
+    CellPadding = UDim2.new(0, 6, 0, 6),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = HubHolder,
+})
 
-local RbxFrame = Create("Frame", {
-    Size = UDim2.new(0.5, -12, 1, -16),
-    Position = UDim2.new(0.5, 4, 0, 8),
+-- Popup for selected script
+local HubPopup = Create("Frame", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+    BackgroundTransparency = 0.35,
+    Visible = false,
+    ZIndex = 20,
+    Active = true,
+    Parent = HubPage,
+})
+
+local HubCard = Create("Frame", {
+    Size = UDim2.new(0, 220, 0, 150),
+    Position = UDim2.new(0.5, -110, 0.5, -75),
     BackgroundColor3 = Config.BgSecondary,
     BorderSizePixel = 0,
-    Parent = ConsolePage,
+    ZIndex = 21,
+    Parent = HubPopup,
 })
-Corner(RbxFrame, 9)
-Stroke(RbxFrame, Config.Border, 1)
+Corner(HubCard, 10)
+Stroke(HubCard, Config.Border, 1)
 
-local RbxTitle = Create("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 28),
-    BackgroundColor3 = Config.BgTertiary,
-    Text = "  " .. L("RobloxConsole"),
-    TextColor3 = Config.Text,
-    TextSize = 12,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    BorderSizePixel = 0,
-    Parent = RbxFrame,
-})
-Corner(RbxTitle, 9)
-
-local RbxScroll = Create("ScrollingFrame", {
-    Size = UDim2.new(1, -8, 1, -34),
-    Position = UDim2.new(0, 4, 0, 30),
+local PopTitle = Create("TextLabel", {
+    Size = UDim2.new(1, -16, 0, 28),
+    Position = UDim2.new(0, 8, 0, 6),
     BackgroundTransparency = 1,
-    BorderSizePixel = 0,
-    ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Color3.fromRGB(160, 160, 160),
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    Parent = RbxFrame,
+    Text = "",
+    TextColor3 = Config.Text,
+    TextSize = 13,
+    Font = Enum.Font.GothamBold,
+    TextTruncate = Enum.TextTruncate.AtEnd,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 22,
+    Parent = HubCard,
 })
-Create("UIListLayout", {Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = RbxScroll})
 
-local function AddLog(scroll, text, color)
-    Create("TextLabel", {
-        Size = UDim2.new(1, -4, 0, 0),
-        AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundTransparency = 1,
-        Text = tostring(text),
-        TextColor3 = color or Config.Text,
-        TextSize = 11,
-        Font = Enum.Font.Code,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true,
-        RichText = true,
-        Parent = scroll,
+local function PopBtn(text, y, primary)
+    local bg = primary and Config.Accent or Config.BgTertiary
+    local fg = primary and Config.Bg or Config.Text
+    local b = Create("TextButton", {
+        Size = UDim2.new(1, -16, 0, 28),
+        Position = UDim2.new(0, 8, 0, y),
+        BackgroundColor3 = bg,
+        Text = text,
+        TextColor3 = fg,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        ZIndex = 22,
+        Parent = HubCard,
     })
-    local count = 0
-    for _, c in ipairs(scroll:GetChildren()) do
-        if c:IsA("TextLabel") then count += 1 end
-    end
-    if count > 160 then
-        for _, c in ipairs(scroll:GetChildren()) do
-            if c:IsA("TextLabel") then c:Destroy() break end
+    Corner(b, 7)
+    return b
+end
+
+local PExec  = PopBtn("Execute", 40, true)
+local PEdit  = PopBtn("Open in Executor", 72, false)
+local PCopy  = PopBtn("Copy", 104, false)
+local PClose = PopBtn("Close", 136, false)
+
+local SelectedScript = {title = "", source = ""}
+
+PClose.MouseButton1Click:Connect(function() HubPopup.Visible = false end)
+
+PExec.MouseButton1Click:Connect(function()
+    HubPopup.Visible = false
+    if SelectedScript.source and #SelectedScript.source > 0 then
+        local fn, err = loadstring(SelectedScript.source)
+        if fn then
+            task.spawn(function()
+                local ok, result = pcall(fn)
+                if not ok then warn("[EnforX] " .. tostring(result)) end
+            end)
+        else
+            warn("[EnforX] " .. tostring(err))
         end
     end
-    task.defer(function()
-        scroll.CanvasPosition = Vector2.new(0, 99999)
+end)
+
+PEdit.MouseButton1Click:Connect(function()
+    if SelectedScript.source then
+        CodeBox.Text = SelectedScript.source
+    end
+    HubPopup.Visible = false
+    SwitchTab(1)
+end)
+
+PCopy.MouseButton1Click:Connect(function()
+    pcall(function()
+        if setclipboard then setclipboard(SelectedScript.source)
+        elseif toclipboard then toclipboard(SelectedScript.source) end
     end)
-end
+    HubPopup.Visible = false
+end)
 
-getgenv().EnforX_ORCLog = function(msg, level)
-    local color = Config.Text
-    if level == "warn" then color = Config.Warning
-    elseif level == "error" then color = Config.Error
-    elseif level == "info" then color = Config.Info end
-    AddLog(OrcScroll, msg, color)
-end
+local function AddHubResult(title, gameName, source, verified, views)
+    local card = Create("TextButton", {
+        BackgroundColor3 = Config.BgSecondary,
+        Text = "",
+        AutoButtonColor = false,
+        BorderSizePixel = 0,
+        Parent = HubHolder,
+    })
+    Corner(card, 8)
+    Stroke(card, Config.Border, 1)
 
-local oldPrint, oldWarn = print, warn
-print = function(...)
-    local t = {}
-    for i = 1, select("#", ...) do t[i] = tostring(select(i, ...)) end
-    AddLog(RbxScroll, table.concat(t, "  "), Config.Text)
-    return oldPrint(...)
-end
-warn = function(...)
-    local t = {}
-    for i = 1, select("#", ...) do t[i] = tostring(select(i, ...)) end
-    AddLog(RbxScroll, "[WARN] " .. table.concat(t, "  "), Config.Warning)
-    return oldWarn(...)
-end
-
-local function AddClear(parent, scroll)
-    local btn = Create("TextButton", {
-        Size = UDim2.new(0, 44, 0, 20),
-        Position = UDim2.new(1, -50, 0, 4),
-        BackgroundColor3 = Config.Bg,
-        Text = L("Clear"),
+    Create("TextLabel", {
+        Size = UDim2.new(1, -12, 0, 18),
+        Position = UDim2.new(0, 8, 0, 6),
+        BackgroundTransparency = 1,
+        Text = (verified and "[V] " or "") .. tostring(title),
+        TextColor3 = Config.Text,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = card,
+    })
+    Create("TextLabel", {
+        Size = UDim2.new(1, -12, 0, 14),
+        Position = UDim2.new(0, 8, 0, 24),
+        BackgroundTransparency = 1,
+        Text = tostring(gameName),
+        TextColor3 = Config.TextDim,
+        TextSize = 11,
+        Font = Enum.Font.Gotham,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = card,
+    })
+    Create("TextLabel", {
+        Size = UDim2.new(1, -12, 0, 12),
+        Position = UDim2.new(0, 8, 0, 40),
+        BackgroundTransparency = 1,
+        Text = tostring(views) .. " views",
         TextColor3 = Config.TextDim,
         TextSize = 10,
         Font = Enum.Font.Gotham,
-        AutoButtonColor = false,
-        Parent = parent,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = card,
     })
-    Corner(btn, 5)
-    btn.MouseButton1Click:Connect(function()
-        for _, c in ipairs(scroll:GetChildren()) do
-            if c:IsA("TextLabel") then c:Destroy() end
-        end
+
+    card.MouseButton1Click:Connect(function()
+        SelectedScript = {title = title, source = source}
+        PopTitle.Text = tostring(title)
+        HubPopup.Visible = true
     end)
 end
-AddClear(OrcFrame, OrcScroll)
-AddClear(RbxFrame, RbxScroll)
 
-AddLog(OrcScroll, "[ORC] " .. L("Ready"), Config.Info)
-AddLog(RbxScroll, "[Roblox] Console hooked", Config.Success)
+HubSearch.FocusLost:Connect(function(enter)
+    if not enter then return end
+    local q = HubSearch.Text
+    if q == "" then return end
+
+    for _, child in ipairs(HubHolder:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    HubMsg.Text = "Searching..."
+    HubMsg.Visible = true
+
+    task.spawn(function()
+        local ok, decoded = pcall(function()
+            local body = httpGet(SearchAPI .. game:GetService("HttpService"):UrlEncode(q))
+            if not body then return nil end
+            return game:GetService("HttpService"):JSONDecode(body)
+        end)
+
+        if not ok or not decoded or not decoded.result then
+            HubMsg.Text = "Search failed (HTTP not available?)"
+            return
+        end
+
+        local n = 0
+        for _, s in ipairs(decoded.result.scripts or {}) do
+            if s.scriptType == "free" and s.isPatched == false then
+                AddHubResult(s.title, (s.game and s.game.name) or "Universal", s.script, s.verified, s.views or 0)
+                n = n + 1
+            end
+        end
+        HubMsg.Visible = (n == 0)
+        if n == 0 then HubMsg.Text = "No results" else HubMsg.Text = n .. " results" end
+    end)
+end)
 
 -- ==================== PAGE 5: SETTINGS ====================
 local SettingsPage = Create("Frame", {
@@ -978,8 +1111,10 @@ FloatingBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ==================== FINAL ====================
+getgenv().EnforX_ORCLog = function(msg, level) end
+
 print("[EnforX] " .. L("UILoaded"))
-EnforX_ORCLog("EnforX v1.2 • " .. L("Ready"), "info")
+-- EnforX_ORCLog("EnforX v1.2 • " .. L("Ready"), "info")
 
 return {
     ScreenGui = ScreenGui,
