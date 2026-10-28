@@ -1,29 +1,26 @@
 -- ==============================================================================
--- ORC TITAN FRAMEWORK v7.0
--- PURE MONOCHROME (#000000 / #FFFFFF)
+-- ORC TITAN FRAMEWORK v8.0 (PURE MINIMAL MONOCHROME)
+-- #000000 / #FFFFFF • NO HEAVY FRAMES • CLEAN TYPOGRAPHY
 -- ==============================================================================
 
 -- ==========================================
 -- [1] ASSET & ICON CONFIGURATION (CUSTOMIZE HERE)
 -- ==========================================
 local ASSETS = {
-    -- Logo at the top of the sidebar and on the floating bubble
-    PROJECT_LOGO = "https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/logo.png",
-    
-    -- Sidebar dock icons (Replace with your own rbxassetid, URL, or leave as default)
+    -- Sidebar dock icons (Replace with your uploaded assets or custom IDs)
     ICON_EXECUTOR = "rbxassetid://10734950309", -- Icon 1: Terminal / Executor
     ICON_SAVED    = "rbxassetid://10709791437", -- Icon 2: Saved Scripts
-    ICON_SEARCH   = "rbxassetid://10734883502", -- Icon 3: ScriptBlox Grid Search
-    ICON_CONSOLE  = "rbxassetid://10734952047", -- Icon 4: Dual Diagnostics Console
-    ICON_SETTINGS = "rbxassetid://10734950020", -- Icon 5: Executor & Engine Settings
-    ICON_CLOSE    = "rbxassetid://10747384394", -- Bottom Icon: Minimize to Floating Bubble
-
-    -- Fallback image for game cards in the search grid
-    FALLBACK_GAME_THUMB = "rbxassetid://10734883502"
+    ICON_SEARCH   = "rbxassetid://10734883502", -- Icon 3: ScriptBlox Search
+    ICON_CONSOLE  = "rbxassetid://10734952047", -- Icon 4: Diagnostics Dual Console
+    ICON_SETTINGS = "rbxassetid://10734950020", -- Icon 5: Engine Settings
+    ICON_CLOSE    = "rbxassetid://10747384394", -- Bottom Icon: Minimize
+    
+    -- Fallback image for game thumbnails in Search
+    FALLBACK_THUMB = "rbxassetid://10734883502"
 }
 
 -- ==========================================
--- [2] CORE ENGINE SERVICES & ENVIRONMENT
+-- [2] SERVICES & INITIALIZATION
 -- ==========================================
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -56,23 +53,23 @@ screenGui.IgnoreGuiInset = true
 screenGui.Parent = targetParent
 
 -- ==========================================
--- [3] PURE MONOCHROME PALETTE & TYPOGRAPHY
+-- [3] PURE MONOCHROME PALETTE & FONTS
 -- ==========================================
 local C_BLACK   = Color3.fromRGB(0, 0, 0)
-local C_DARK    = Color3.fromRGB(8, 8, 11)
-local C_PANEL   = Color3.fromRGB(14, 14, 18)
-local C_CARD    = Color3.fromRGB(20, 20, 26)
-local C_BORDER  = Color3.fromRGB(38, 38, 48)
+local C_DARK    = Color3.fromRGB(6, 6, 8)
+local C_PANEL   = Color3.fromRGB(12, 12, 15)
+local C_CARD    = Color3.fromRGB(18, 18, 22)
+local C_BORDER  = Color3.fromRGB(34, 34, 42)
 local C_WHITE   = Color3.fromRGB(255, 255, 255)
-local C_MUTED   = Color3.fromRGB(160, 160, 175)
-local C_SUBTLE  = Color3.fromRGB(90, 90, 105)
+local C_MUTED   = Color3.fromRGB(150, 150, 160)
+local C_SUBTLE  = Color3.fromRGB(80, 80, 95)
 
 local FONT_TITLE = Enum.Font.GothamBlack
 local FONT_TEXT  = Enum.Font.GothamMedium
 local FONT_CODE  = Enum.Font.Code
 
 -- ==========================================
--- [4] STORAGE & CLIPBOARD INFRASTRUCTURE
+-- [4] STORAGE & CLIPBOARD
 -- ==========================================
 local SCRIPTS_DIR = "scripts"
 local WORKSPACE_DIR = "workspace"
@@ -112,21 +109,19 @@ local function writeSystemClipboard(text)
 end
 
 -- ==========================================
--- [5] ROOT CONTAINER & FULLSCREEN BACKDROP
+-- [5] ROOT CONTAINER & BACKDROP
 -- ==========================================
 local container = Instance.new("Frame")
 container.Name = "Container"
 container.Size = UDim2.new(1, 0, 1, 0)
-container.Position = UDim2.new(0, 0, 0, 0)
 container.BackgroundTransparency = 1
 container.Parent = screenGui
 
 local fullBackdrop = Instance.new("TextButton")
 fullBackdrop.Name = "FullBackdrop"
 fullBackdrop.Size = UDim2.new(1, 0, 1, 0)
-fullBackdrop.Position = UDim2.new(0, 0, 0, 0)
 fullBackdrop.BackgroundColor3 = C_BLACK
-fullBackdrop.BackgroundTransparency = 0.45
+fullBackdrop.BackgroundTransparency = 0.40
 fullBackdrop.AutoButtonColor = false
 fullBackdrop.Text = ""
 fullBackdrop.Active = false
@@ -135,20 +130,20 @@ fullBackdrop.Parent = container
 
 local backdropGradient = Instance.new("UIGradient")
 backdropGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(5, 5, 8)),
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(4, 4, 6)),
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(10, 10, 14))
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(8, 8, 12))
 })
 backdropGradient.Rotation = 45
 backdropGradient.Parent = fullBackdrop
 
 -- ==========================================
--- [6] RIGHT DOCK: SQUARE TILES STACK
+-- [6] RIGHT DOCK: COMPACT, SPACIOUS & NO CLUTTER
 -- ==========================================
 local rightDock = Instance.new("Frame")
 rightDock.Name = "RightDock"
-rightDock.Size = UDim2.new(0, 64, 1, 0)
-rightDock.Position = UDim2.new(1, -64, 0, 0)
+rightDock.Size = UDim2.new(0, 52, 1, 0)
+rightDock.Position = UDim2.new(1, -52, 0, 0)
 rightDock.BackgroundColor3 = C_PANEL
 rightDock.BorderSizePixel = 0
 rightDock.Active = true
@@ -156,79 +151,37 @@ rightDock.Parent = container
 
 local dockBorder = Instance.new("Frame")
 dockBorder.Size = UDim2.new(0, 1, 1, 0)
-dockBorder.Position = UDim2.new(0, 0, 0, 0)
 dockBorder.BackgroundColor3 = C_BORDER
 dockBorder.BorderSizePixel = 0
 dockBorder.Parent = rightDock
 
--- Top Logo Square Tile
-local logoTile = Instance.new("Frame")
-logoTile.Size = UDim2.new(0, 48, 0, 48)
-logoTile.Position = UDim2.new(0.5, -24, 0, 10)
-logoTile.BackgroundColor3 = C_CARD
-logoTile.BorderSizePixel = 0
-logoTile.Parent = rightDock
-
-local ltCorner = Instance.new("UICorner")
-ltCorner.CornerRadius = UDim.new(0, 12)
-ltCorner.Parent = logoTile
-
-local ltStroke = Instance.new("UIStroke")
-ltStroke.Color = C_BORDER
-ltStroke.Thickness = 1.2
-ltStroke.Parent = logoTile
-
-local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.new(1, -8, 1, -8)
-logoImage.Position = UDim2.new(0, 4, 0, 4)
-logoImage.BackgroundTransparency = 1
-logoImage.Image = ASSETS.PROJECT_LOGO
-logoImage.ScaleType = Enum.ScaleType.Fit
-logoImage.Parent = logoTile
-
-local logoFallback = Instance.new("TextLabel")
-logoFallback.Size = UDim2.new(1, 0, 1, 0)
-logoFallback.BackgroundTransparency = 1
-logoFallback.Text = "ORC"
-logoFallback.TextColor3 = C_WHITE
-logoFallback.Font = FONT_TITLE
-logoFallback.TextSize = 14
-logoFallback.Parent = logoTile
-
-logoImage.Changed:Connect(function()
-    if logoImage.IsLoaded then
-        logoFallback.Visible = false
-    end
-end)
-
--- Square Buttons Container
 local dockButtonsContainer = Instance.new("Frame")
 dockButtonsContainer.Name = "DockButtons"
-dockButtonsContainer.Size = UDim2.new(1, 0, 1, -140)
-dockButtonsContainer.Position = UDim2.new(0, 0, 0, 68)
+dockButtonsContainer.Size = UDim2.new(1, 0, 1, -80)
+dockButtonsContainer.Position = UDim2.new(0, 0, 0, 16)
 dockButtonsContainer.BackgroundTransparency = 1
 dockButtonsContainer.Parent = rightDock
 
--- Sliding Active Pill Indicator
+-- Sliding Active Pill
 local activePill = Instance.new("Frame")
 activePill.Name = "ActivePill"
-activePill.Size = UDim2.new(0, 4, 0, 40)
-activePill.Position = UDim2.new(1, -4, 0, 6)
+activePill.Size = UDim2.new(0, 3, 0, 32)
+activePill.Position = UDim2.new(1, -3, 0, 4)
 activePill.BackgroundColor3 = C_WHITE
 activePill.BorderSizePixel = 0
 activePill.Parent = dockButtonsContainer
 
 local pillCorner = Instance.new("UICorner")
-pillCorner.CornerRadius = UDim.new(0, 4)
+pillCorner.CornerRadius = UDim.new(0, 3)
 pillCorner.Parent = activePill
 
 local dockButtons = {}
 
-local function makeSquareButton(name, iconAsset, yOffset)
+local function makeDockButton(name, iconAsset, yOffset)
     local btn = Instance.new("ImageButton")
     btn.Name = "Btn_" .. name
-    btn.Size = UDim2.new(0, 48, 0, 48)
-    btn.Position = UDim2.new(0.5, -24, 0, yOffset)
+    btn.Size = UDim2.new(0, 38, 0, 38)
+    btn.Position = UDim2.new(0.5, -19, 0, yOffset)
     btn.BackgroundColor3 = C_CARD
     btn.Image = iconAsset
     btn.ImageColor3 = C_MUTED
@@ -237,7 +190,7 @@ local function makeSquareButton(name, iconAsset, yOffset)
     btn.Parent = dockButtonsContainer
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = btn
 
     local stroke = Instance.new("UIStroke")
@@ -246,27 +199,28 @@ local function makeSquareButton(name, iconAsset, yOffset)
     stroke.Parent = btn
 
     local pad = Instance.new("UIPadding")
-    pad.PaddingTop = UDim.new(0, 11)
-    pad.PaddingBottom = UDim.new(0, 11)
-    pad.PaddingLeft = UDim.new(0, 11)
-    pad.PaddingRight = UDim.new(0, 11)
+    pad.PaddingTop = UDim.new(0, 9)
+    pad.PaddingBottom = UDim.new(0, 9)
+    pad.PaddingLeft = UDim.new(0, 9)
+    pad.PaddingRight = UDim.new(0, 9)
     pad.Parent = btn
 
     dockButtons[name] = btn
     return btn
 end
 
-local btnExecutor = makeSquareButton("Executor", ASSETS.ICON_EXECUTOR, 6)
-local btnSaved    = makeSquareButton("Saved", ASSETS.ICON_SAVED, 60)
-local btnSearch   = makeSquareButton("Search", ASSETS.ICON_SEARCH, 114)
-local btnConsole  = makeSquareButton("Console", ASSETS.ICON_CONSOLE, 168)
-local btnSettings = makeSquareButton("Settings", ASSETS.ICON_SETTINGS, 222)
+-- 5 Buttons with comfortable vertical spacing (46px interval)
+local btnExecutor = makeDockButton("Executor", ASSETS.ICON_EXECUTOR, 4)
+local btnSaved    = makeDockButton("Saved", ASSETS.ICON_SAVED, 50)
+local btnSearch   = makeDockButton("Search", ASSETS.ICON_SEARCH, 96)
+local btnConsole  = makeDockButton("Console", ASSETS.ICON_CONSOLE, 142)
+local btnSettings = makeDockButton("Settings", ASSETS.ICON_SETTINGS, 188)
 
--- Bottom Close Button Tile
+-- Close Button (Well separated at bottom)
 local btnClose = Instance.new("ImageButton")
 btnClose.Name = "Btn_Close"
-btnClose.Size = UDim2.new(0, 48, 0, 48)
-btnClose.Position = UDim2.new(0.5, -24, 1, -58)
+btnClose.Size = UDim2.new(0, 38, 0, 38)
+btnClose.Position = UDim2.new(0.5, -19, 1, -48)
 btnClose.BackgroundColor3 = C_CARD
 btnClose.Image = ASSETS.ICON_CLOSE
 btnClose.ImageColor3 = C_WHITE
@@ -275,7 +229,7 @@ btnClose.AutoButtonColor = false
 btnClose.Parent = rightDock
 
 local bcCorner = Instance.new("UICorner")
-bcCorner.CornerRadius = UDim.new(0, 12)
+bcCorner.CornerRadius = UDim.new(0, 8)
 bcCorner.Parent = btnClose
 
 local bcStroke = Instance.new("UIStroke")
@@ -284,21 +238,23 @@ bcStroke.Thickness = 1
 bcStroke.Parent = btnClose
 
 local bcPad = Instance.new("UIPadding")
-bcPad.PaddingTop = UDim.new(0, 12)
-bcPad.PaddingBottom = UDim.new(0, 12)
-bcPad.PaddingLeft = UDim.new(0, 12)
-bcPad.PaddingRight = UDim.new(0, 12)
+bcPad.PaddingTop = UDim.new(0, 10)
+bcPad.PaddingBottom = UDim.new(0, 10)
+bcPad.PaddingLeft = UDim.new(0, 10)
+bcPad.PaddingRight = UDim.new(0, 10)
 bcPad.Parent = btnClose
 dockButtons["Close"] = btnClose
 
--- Floating Restore Bubble (When Minimized)
-local floatingBubble = Instance.new("ImageButton")
+-- Floating Restore Bubble
+local floatingBubble = Instance.new("TextButton")
 floatingBubble.Name = "ORC_FloatingBubble"
-floatingBubble.Size = UDim2.new(0, 50, 0, 50)
-floatingBubble.Position = UDim2.new(1, -70, 0.45, 0)
+floatingBubble.Size = UDim2.new(0, 44, 0, 44)
+floatingBubble.Position = UDim2.new(1, -56, 0.45, 0)
 floatingBubble.BackgroundColor3 = C_BLACK
-floatingBubble.Image = ASSETS.PROJECT_LOGO
-floatingBubble.ScaleType = Enum.ScaleType.Fit
+floatingBubble.TextColor3 = C_WHITE
+floatingBubble.Text = "ORC"
+floatingBubble.Font = FONT_TITLE
+floatingBubble.TextSize = 13
 floatingBubble.Visible = false
 floatingBubble.Active = true
 floatingBubble.Draggable = true
@@ -310,23 +266,23 @@ fbCorner.Parent = floatingBubble
 
 local fbStroke = Instance.new("UIStroke")
 fbStroke.Color = C_WHITE
-fbStroke.Thickness = 1.6
+fbStroke.Thickness = 1.4
 fbStroke.Parent = floatingBubble
 
 -- ==========================================
--- [7] FLOATING VIEWPORT (SPACIOUS & EXPANDED)
+-- [7] EXPANDED FLOATING WINDOW (75% x 88%)
 -- ==========================================
 local floatingWindow = Instance.new("Frame")
 floatingWindow.Name = "FloatingWindow"
-floatingWindow.Size = UDim2.new(0.68, 0, 0.84, 0)
-floatingWindow.Position = UDim2.new(0.12, 0, 0.08, 0)
+floatingWindow.Size = UDim2.new(0.75, 0, 0.88, 0)
+floatingWindow.Position = UDim2.new(0.09, 0, 0.06, 0)
 floatingWindow.BackgroundColor3 = C_PANEL
 floatingWindow.BorderSizePixel = 0
 floatingWindow.Active = true
 floatingWindow.Parent = container
 
 local fwCorner = Instance.new("UICorner")
-fwCorner.CornerRadius = UDim.new(0, 16)
+fwCorner.CornerRadius = UDim.new(0, 14)
 fwCorner.Parent = floatingWindow
 
 local fwStroke = Instance.new("UIStroke")
@@ -334,16 +290,15 @@ fwStroke.Color = C_BORDER
 fwStroke.Thickness = 1.2
 fwStroke.Parent = floatingWindow
 
--- Window Header (Cleaned: Single Clean Title)
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 42)
+header.Size = UDim2.new(1, 0, 0, 38)
 header.BackgroundColor3 = C_DARK
 header.BorderSizePixel = 0
 header.Parent = floatingWindow
 
 local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 16)
+headerCorner.CornerRadius = UDim.new(0, 14)
 headerCorner.Parent = header
 
 local headerBottomBorder = Instance.new("Frame")
@@ -375,11 +330,10 @@ headerStatus.TextSize = 10
 headerStatus.TextXAlignment = Enum.TextXAlignment.Right
 headerStatus.Parent = header
 
--- Viewport Pages Container
 local viewport = Instance.new("Frame")
 viewport.Name = "Viewport"
-viewport.Size = UDim2.new(1, -24, 1, -56)
-viewport.Position = UDim2.new(0, 12, 0, 48)
+viewport.Size = UDim2.new(1, -24, 1, -54)
+viewport.Position = UDim2.new(0, 12, 0, 46)
 viewport.BackgroundTransparency = 1
 viewport.Parent = floatingWindow
 
@@ -387,7 +341,7 @@ local pages = {}
 local switchTab = nil
 
 -- ==========================================
--- [8] TAB 1: ADVANCED SCROLLING TERMINAL
+-- [8] TAB 1: ADVANCED TERMINAL EXECUTOR
 -- ==========================================
 local pageExecutor = Instance.new("Frame")
 pageExecutor.Name = "Page_Executor"
@@ -399,7 +353,6 @@ pages["Executor"] = pageExecutor
 local editorScroll = Instance.new("ScrollingFrame")
 editorScroll.Name = "EditorScroll"
 editorScroll.Size = UDim2.new(1, 0, 1, -44)
-editorScroll.Position = UDim2.new(0, 0, 0, 0)
 editorScroll.BackgroundColor3 = C_BLACK
 editorScroll.BorderSizePixel = 0
 editorScroll.ScrollBarThickness = 4
@@ -409,7 +362,7 @@ editorScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 editorScroll.Parent = pageExecutor
 
 local edCorner = Instance.new("UICorner")
-edCorner.CornerRadius = UDim.new(0, 10)
+edCorner.CornerRadius = UDim.new(0, 8)
 edCorner.Parent = editorScroll
 
 local edStroke = Instance.new("UIStroke")
@@ -456,7 +409,7 @@ btnRowLayout.Parent = btnRow
 
 local function makeActionBtn(text, bgCol, textCol, width)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0, width or 85, 1, 0)
+    b.Size = UDim2.new(0, width or 80, 1, 0)
     b.BackgroundColor3 = bgCol
     b.TextColor3 = textCol
     b.Font = FONT_TITLE
@@ -476,10 +429,10 @@ local function makeActionBtn(text, bgCol, textCol, width)
     return b
 end
 
-local btnSaveAs   = makeActionBtn("SAVE", C_CARD, C_WHITE, 75)
-local btnSyncClip = makeActionBtn("PASTE", C_CARD, C_WHITE, 75)
-local btnCopy     = makeActionBtn("COPY", C_CARD, C_WHITE, 70)
-local btnClear    = makeActionBtn("CLEAR", C_CARD, C_WHITE, 70)
+local btnSaveAs   = makeActionBtn("SAVE", C_CARD, C_WHITE, 70)
+local btnSyncClip = makeActionBtn("PASTE", C_CARD, C_WHITE, 70)
+local btnCopy     = makeActionBtn("COPY", C_CARD, C_WHITE, 65)
+local btnClear    = makeActionBtn("CLEAR", C_CARD, C_WHITE, 65)
 local btnExecute  = makeActionBtn("EXECUTE", C_WHITE, C_BLACK, 95)
 
 btnClear.MouseButton1Click:Connect(function()
@@ -516,7 +469,7 @@ btnExecute.MouseButton1Click:Connect(function()
 end)
 
 -- ==========================================
--- [9] TAB 2: SAVED SCRIPTS DIRECTORY
+-- [9] TAB 2: SAVED SCRIPTS (WITH TWO-FIELD ADD MODAL)
 -- ==========================================
 local pageSaved = Instance.new("Frame")
 pageSaved.Name = "Page_Saved"
@@ -528,52 +481,25 @@ pages["Saved"] = pageSaved
 
 local savedTopBar = Instance.new("Frame")
 savedTopBar.Size = UDim2.new(1, 0, 0, 36)
-savedTopBar.Position = UDim2.new(0, 0, 0, 0)
 savedTopBar.BackgroundTransparency = 1
 savedTopBar.Parent = pageSaved
 
-local newScriptName = Instance.new("TextBox")
-newScriptName.Size = UDim2.new(1, -190, 1, 0)
-newScriptName.BackgroundColor3 = C_BLACK
-newScriptName.TextColor3 = C_WHITE
-newScriptName.PlaceholderText = "Script name..."
-newScriptName.PlaceholderColor3 = C_SUBTLE
-newScriptName.Font = FONT_CODE
-newScriptName.TextSize = 12
-newScriptName.ClearTextOnFocus = false
-newScriptName.Text = ""
-newScriptName.Parent = savedTopBar
+local btnOpenAddModal = Instance.new("TextButton")
+btnOpenAddModal.Size = UDim2.new(0, 110, 1, 0)
+btnOpenAddModal.BackgroundColor3 = C_WHITE
+btnOpenAddModal.TextColor3 = C_BLACK
+btnOpenAddModal.Font = FONT_TITLE
+btnOpenAddModal.TextSize = 11
+btnOpenAddModal.Text = "+ ADD SCRIPT"
+btnOpenAddModal.Parent = savedTopBar
 
-local nsnCorner = Instance.new("UICorner")
-nsnCorner.CornerRadius = UDim.new(0, 8)
-nsnCorner.Parent = newScriptName
-
-local nsnPad = Instance.new("UIPadding")
-nsnPad.PaddingLeft = UDim.new(0, 10)
-nsnPad.Parent = newScriptName
-
-local nsnStroke = Instance.new("UIStroke")
-nsnStroke.Color = C_BORDER
-nsnStroke.Thickness = 1
-nsnStroke.Parent = newScriptName
-
-local btnCreateScript = Instance.new("TextButton")
-btnCreateScript.Size = UDim2.new(0, 100, 1, 0)
-btnCreateScript.Position = UDim2.new(1, -180, 0, 0)
-btnCreateScript.BackgroundColor3 = C_WHITE
-btnCreateScript.TextColor3 = C_BLACK
-btnCreateScript.Font = FONT_TITLE
-btnCreateScript.TextSize = 11
-btnCreateScript.Text = "SAVE EDITOR"
-btnCreateScript.Parent = savedTopBar
-
-local bcsCorner = Instance.new("UICorner")
-bcsCorner.CornerRadius = UDim.new(0, 8)
-bcsCorner.Parent = btnCreateScript
+local boamCorner = Instance.new("UICorner")
+boamCorner.CornerRadius = UDim.new(0, 8)
+boamCorner.Parent = btnOpenAddModal
 
 local btnRefreshSaved = Instance.new("TextButton")
-btnRefreshSaved.Size = UDim2.new(0, 75, 1, 0)
-btnRefreshSaved.Position = UDim2.new(1, -75, 0, 0)
+btnRefreshSaved.Size = UDim2.new(0, 80, 1, 0)
+btnRefreshSaved.Position = UDim2.new(0, 118, 0, 0)
 btnRefreshSaved.BackgroundColor3 = C_CARD
 btnRefreshSaved.TextColor3 = C_WHITE
 btnRefreshSaved.Font = FONT_TITLE
@@ -599,6 +525,148 @@ local savedLayout = Instance.new("UIListLayout")
 savedLayout.Padding = UDim.new(0, 8)
 savedLayout.Parent = savedScroll
 
+-- ADD SCRIPT MODAL (Two-Field: Script Name + Script Code)
+local addScriptModal = Instance.new("Frame")
+addScriptModal.Name = "AddScriptModal"
+addScriptModal.Size = UDim2.new(0.85, 0, 0.85, 0)
+addScriptModal.Position = UDim2.new(0.075, 0, 0.075, 0)
+addScriptModal.BackgroundColor3 = C_DARK
+addScriptModal.BorderSizePixel = 0
+addScriptModal.Visible = false
+addScriptModal.ZIndex = 200
+addScriptModal.Parent = floatingWindow
+
+local asmCorner = Instance.new("UICorner")
+asmCorner.CornerRadius = UDim.new(0, 12)
+asmCorner.Parent = addScriptModal
+
+local asmStroke = Instance.new("UIStroke")
+asmStroke.Color = C_WHITE
+asmStroke.Thickness = 1.4
+asmStroke.Parent = addScriptModal
+
+local asmHeader = Instance.new("TextLabel")
+asmHeader.Size = UDim2.new(1, -60, 0, 26)
+asmHeader.Position = UDim2.new(0, 14, 0, 10)
+asmHeader.BackgroundTransparency = 1
+asmHeader.Text = "CREATE NEW SCRIPT"
+asmHeader.TextColor3 = C_WHITE
+asmHeader.Font = FONT_TITLE
+asmHeader.TextSize = 13
+asmHeader.TextXAlignment = Enum.TextXAlignment.Left
+asmHeader.ZIndex = 201
+asmHeader.Parent = addScriptModal
+
+local asmClose = Instance.new("TextButton")
+asmClose.Size = UDim2.new(0, 28, 0, 28)
+asmClose.Position = UDim2.new(1, -36, 0, 10)
+asmClose.BackgroundTransparency = 1
+asmClose.Text = "✕"
+asmClose.TextColor3 = C_MUTED
+asmClose.Font = FONT_TITLE
+asmClose.TextSize = 13
+asmClose.ZIndex = 202
+asmClose.Parent = addScriptModal
+
+-- Field 1: Script Name
+local inputScriptName = Instance.new("TextBox")
+inputScriptName.Size = UDim2.new(1, -28, 0, 34)
+inputScriptName.Position = UDim2.new(0, 14, 0, 44)
+inputScriptName.BackgroundColor3 = C_BLACK
+inputScriptName.TextColor3 = C_WHITE
+inputScriptName.PlaceholderText = "Enter script name (e.g. MySuperFarm)..."
+inputScriptName.PlaceholderColor3 = C_SUBTLE
+inputScriptName.Font = FONT_CODE
+inputScriptName.TextSize = 12
+inputScriptName.ClearTextOnFocus = false
+inputScriptName.Text = ""
+inputScriptName.ZIndex = 201
+inputScriptName.Parent = addScriptModal
+
+local isnCorner = Instance.new("UICorner")
+isnCorner.CornerRadius = UDim.new(0, 8)
+isnCorner.Parent = inputScriptName
+
+local isnPad = Instance.new("UIPadding")
+isnPad.PaddingLeft = UDim.new(0, 10)
+isnPad.Parent = inputScriptName
+
+local isnStroke = Instance.new("UIStroke")
+isnStroke.Color = C_BORDER
+isnStroke.Thickness = 1
+isnStroke.Parent = inputScriptName
+
+-- Field 2: Script Code
+local inputCodeScroll = Instance.new("ScrollingFrame")
+inputCodeScroll.Size = UDim2.new(1, -28, 1, -135)
+inputCodeScroll.Position = UDim2.new(0, 14, 0, 86)
+inputCodeScroll.BackgroundColor3 = C_BLACK
+inputCodeScroll.BorderSizePixel = 0
+inputCodeScroll.ScrollBarThickness = 4
+inputCodeScroll.ScrollBarImageColor3 = C_WHITE
+inputCodeScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+inputCodeScroll.ZIndex = 201
+inputCodeScroll.Parent = addScriptModal
+
+local icsCorner = Instance.new("UICorner")
+icsCorner.CornerRadius = UDim.new(0, 8)
+icsCorner.Parent = inputCodeScroll
+
+local icsStroke = Instance.new("UIStroke")
+icsStroke.Color = C_BORDER
+icsStroke.Thickness = 1
+icsStroke.Parent = inputCodeScroll
+
+local inputScriptCode = Instance.new("TextBox")
+inputScriptCode.Size = UDim2.new(1, 0, 1, 0)
+inputScriptCode.AutomaticSize = Enum.AutomaticSize.Y
+inputScriptCode.BackgroundTransparency = 1
+inputScriptCode.TextColor3 = C_WHITE
+inputScriptCode.PlaceholderText = "-- Paste or write your Luau script here..."
+inputScriptCode.PlaceholderColor3 = C_SUBTLE
+inputScriptCode.Font = FONT_CODE
+inputScriptCode.TextSize = 12
+inputScriptCode.TextXAlignment = Enum.TextXAlignment.Left
+inputScriptCode.TextYAlignment = Enum.TextYAlignment.Top
+inputScriptCode.ClearTextOnFocus = false
+inputScriptCode.MultiLine = true
+inputScriptCode.Text = ""
+inputScriptCode.ZIndex = 202
+inputScriptCode.Parent = inputCodeScroll
+
+local iscPad = Instance.new("UIPadding")
+iscPad.PaddingLeft = UDim.new(0, 10)
+iscPad.PaddingTop = UDim.new(0, 10)
+iscPad.PaddingRight = UDim.new(0, 10)
+iscPad.PaddingBottom = UDim.new(0, 10)
+iscPad.Parent = inputScriptCode
+
+-- Save Button inside Modal
+local btnModalSave = Instance.new("TextButton")
+btnModalSave.Size = UDim2.new(1, -28, 0, 36)
+btnModalSave.Position = UDim2.new(0, 14, 1, -44)
+btnModalSave.BackgroundColor3 = C_WHITE
+btnModalSave.TextColor3 = C_BLACK
+btnModalSave.Font = FONT_TITLE
+btnModalSave.TextSize = 12
+btnModalSave.Text = "SAVE SCRIPT"
+btnModalSave.ZIndex = 203
+btnModalSave.Parent = addScriptModal
+
+local bmsCorner = Instance.new("UICorner")
+bmsCorner.CornerRadius = UDim.new(0, 8)
+bmsCorner.Parent = btnModalSave
+
+asmClose.MouseButton1Click:Connect(function()
+    addScriptModal.Visible = false
+end)
+
+btnOpenAddModal.MouseButton1Click:Connect(function()
+    inputScriptName.Text = ""
+    inputScriptCode.Text = editorBox.Text
+    addScriptModal.Visible = true
+end)
+
 local function refreshSavedList()
     for _, ch in ipairs(savedScroll:GetChildren()) do
         if ch:IsA("Frame") then ch:Destroy() end
@@ -613,7 +681,7 @@ local function refreshSavedList()
         local emptyLbl = Instance.new("TextLabel")
         emptyLbl.Size = UDim2.new(1, 0, 0, 60)
         emptyLbl.BackgroundTransparency = 1
-        emptyLbl.Text = "No saved scripts in /sdcard/ORC/scripts/\nWrite code in Executor and save it here."
+        emptyLbl.Text = "No scripts in /sdcard/ORC/scripts/\nClick '+ ADD SCRIPT' above to create one."
         emptyLbl.TextColor3 = C_MUTED
         emptyLbl.Font = FONT_CODE
         emptyLbl.TextSize = 11
@@ -728,8 +796,8 @@ end
 
 btnRefreshSaved.MouseButton1Click:Connect(refreshSavedList)
 
-btnCreateScript.MouseButton1Click:Connect(function()
-    local name = newScriptName.Text
+btnModalSave.MouseButton1Click:Connect(function()
+    local name = inputScriptName.Text
     if not name or #name == 0 then
         name = "Script_" .. tostring(os.time())
     end
@@ -739,8 +807,8 @@ btnCreateScript.MouseButton1Click:Connect(function()
     local targetPath = SCRIPTS_DIR .. "/" .. name
     pcall(function()
         if writefile then
-            writefile(targetPath, editorBox.Text)
-            newScriptName.Text = ""
+            writefile(targetPath, inputScriptCode.Text)
+            addScriptModal.Visible = false
             refreshSavedList()
             headerStatus.Text = "SAVED: " .. name
         end
@@ -748,11 +816,14 @@ btnCreateScript.MouseButton1Click:Connect(function()
 end)
 
 btnSaveAs.MouseButton1Click:Connect(function()
+    inputScriptName.Text = ""
+    inputScriptCode.Text = editorBox.Text
     if switchTab then switchTab("Saved") end
+    addScriptModal.Visible = true
 end)
 
 -- ==========================================
--- [10] TAB 3: SCRIPTBLOX GRID DISCOVERY
+-- [10] TAB 3: SCRIPTBLOX DISCOVERY GRID
 -- ==========================================
 local pageSearch = Instance.new("Frame")
 pageSearch.Name = "Page_Search"
@@ -764,13 +835,11 @@ pages["Search"] = pageSearch
 
 local searchHeaderBar = Instance.new("Frame")
 searchHeaderBar.Size = UDim2.new(1, 0, 0, 36)
-searchHeaderBar.Position = UDim2.new(0, 0, 0, 0)
 searchHeaderBar.BackgroundTransparency = 1
 searchHeaderBar.Parent = pageSearch
 
 local searchBar = Instance.new("TextBox")
-searchBar.Size = UDim2.new(1, -100, 1, 0)
-searchBar.Position = UDim2.new(0, 0, 0, 0)
+searchBar.Size = UDim2.new(1, -95, 1, 0)
 searchBar.BackgroundColor3 = C_BLACK
 searchBar.TextColor3 = C_WHITE
 searchBar.PlaceholderText = "Search community scripts..."
@@ -786,7 +855,7 @@ sbCorner.CornerRadius = UDim.new(0, 8)
 sbCorner.Parent = searchBar
 
 local sbPad = Instance.new("UIPadding")
-sbPad.PaddingLeft = UDim.new(0, 12)
+sbPad.PaddingLeft = UDim.new(0, 10)
 sbPad.Parent = searchBar
 
 local sbStroke = Instance.new("UIStroke")
@@ -795,8 +864,8 @@ sbStroke.Thickness = 1
 sbStroke.Parent = searchBar
 
 local searchBtn = Instance.new("TextButton")
-searchBtn.Size = UDim2.new(0, 92, 1, 0)
-searchBtn.Position = UDim2.new(1, -92, 0, 0)
+searchBtn.Size = UDim2.new(0, 88, 1, 0)
+searchBtn.Position = UDim2.new(1, -88, 0, 0)
 searchBtn.BackgroundColor3 = C_WHITE
 searchBtn.TextColor3 = C_BLACK
 searchBtn.Font = FONT_TITLE
@@ -824,7 +893,7 @@ searchGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
 searchGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 searchGridLayout.Parent = searchGridScroll
 
--- Action Modal Pop-up (LOAD or SAVE on tile click)
+-- Action Modal
 local actionModal = Instance.new("Frame")
 actionModal.Name = "ActionModal"
 actionModal.Size = UDim2.new(0, 260, 0, 130)
@@ -1023,7 +1092,7 @@ local function performScriptBloxSearch(query)
                         end
                         img.Image = imageUrl
                     else
-                        img.Image = ASSETS.FALLBACK_GAME_THUMB
+                        img.Image = ASSETS.FALLBACK_THUMB
                     end
 
                     local titleLbl = Instance.new("TextLabel")
@@ -1084,7 +1153,7 @@ searchBar.FocusLost:Connect(function(enterPressed)
 end)
 
 -- ==========================================
--- [11] TAB 4: DUAL DIAGNOSTICS CONSOLE
+-- [11] TAB 4: REAL-TIME DUAL CONSOLE (FIXED OUTPUT & AUTO-SCROLL)
 -- ==========================================
 local pageConsole = Instance.new("Frame")
 pageConsole.Name = "Page_Console"
@@ -1096,7 +1165,6 @@ pages["Console"] = pageConsole
 
 local consoleBody = Instance.new("Frame")
 consoleBody.Size = UDim2.new(1, 0, 1, -38)
-consoleBody.Position = UDim2.new(0, 0, 0, 0)
 consoleBody.BackgroundTransparency = 1
 consoleBody.Parent = pageConsole
 
@@ -1163,7 +1231,7 @@ end
 local orcPane = makeConsolePane("ORC RUNTIME (ERRORS ONLY)")
 local rbxPane = makeConsolePane("ROBLOX ENGINE (ALL OUTPUTS)")
 
--- Bottom Unified Clear Toolbar
+-- Bottom Unified Clear Bar
 local consoleBottomBar = Instance.new("Frame")
 consoleBottomBar.Size = UDim2.new(1, 0, 0, 32)
 consoleBottomBar.Position = UDim2.new(0, 0, 1, -32)
@@ -1274,12 +1342,11 @@ local function addLogEntry(scrollFrame, text, tag)
     end)
 end
 
--- Roblox Console: Logs everything naturally
+-- Hook LogService: Roblox Console logs all messages; ORC logs errors only
 LogService.MessageOut:Connect(function(message, messageType)
     local tag = "OUT"
     if messageType == Enum.MessageType.MessageError then
         tag = "ERR"
-        -- Also mirror to ORC errors pane
         addLogEntry(orcPane, message, "ERR")
     elseif messageType == Enum.MessageType.MessageWarning then
         tag = "WARN"
@@ -1303,8 +1370,11 @@ pcall(function()
     end
 end)
 
+addLogEntry(orcPane, "ORC Kernel active.", "INIT")
+addLogEntry(rbxPane, "Roblox Engine Console active.", "INIT")
+
 -- ==========================================
--- [12] TAB 5: COMPREHENSIVE SETTINGS
+-- [12] TAB 5: ADVANCED EXECUTOR SETTINGS
 -- ==========================================
 local pageSettings = Instance.new("ScrollingFrame")
 pageSettings.Name = "Page_Settings"
@@ -1448,25 +1518,16 @@ local function makeSettingInput(title, desc, placeholder, onApplied)
     end)
 end
 
--- 1. Floating Bubble Icon Change (URL or rbxassetid)
-makeSettingInput("Bubble Icon URL", "Change floating restore button image", "Paste Image URL...", function(val)
-    floatingBubble.Image = val
-    headerStatus.Text = "BUBBLE ICON UPDATED"
-end)
-
--- 2. Sidebar Logo Change (URL or rbxassetid)
-makeSettingInput("Sidebar Logo URL", "Change top corner brand image", "Paste Image URL...", function(val)
-    logoImage.Image = val
-    headerStatus.Text = "SIDEBAR LOGO UPDATED"
-end)
-
--- 3. Game Title Spoofing
-makeSettingInput("Spoof Game Title", "Override header title bar label", "Custom Title...", function(val)
+-- Settings Controls
+makeSettingInput("Spoof Title", "Override header window text", "Custom title...", function(val)
     headerTitle.Text = string.upper(val)
 end)
 
--- 4. Anti-AFK
-makeSettingToggle("Anti-AFK System", "Prevent disconnection after 20 minutes inactivity", true, function(enabled)
+makeSettingInput("Floating Bubble Text", "Change text on minimized bubble", "Text...", function(val)
+    floatingBubble.Text = val
+end)
+
+makeSettingToggle("Anti-AFK Protection", "Prevent 20min inactivity kick", true, function(enabled)
     if enabled then
         player.Idled:Connect(function()
             VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
@@ -1476,16 +1537,14 @@ makeSettingToggle("Anti-AFK System", "Prevent disconnection after 20 minutes ina
     end
 end)
 
--- 5. FPS Unlocker
-makeSettingToggle("FPS Unlocker (240 FPS)", "Bypass Roblox 60 FPS mobile cap", true, function(enabled)
+makeSettingToggle("FPS Unlocker (240 FPS)", "Bypass 60 FPS mobile limit", true, function(enabled)
     pcall(function()
         if setfpscap then setfpscap(enabled and 240 or 60) end
     end)
 end)
 
--- 6. Super Speed
 local speedConn = nil
-makeSettingToggle("Super Speed (WalkSpeed 50)", "Enforce increased movement velocity", false, function(enabled)
+makeSettingToggle("Speed Hack (WalkSpeed 50)", "Constant movement speed modifier", false, function(enabled)
     if speedConn then speedConn:Disconnect() speedConn = nil end
     if enabled then
         speedConn = RunService.Stepped:Connect(function()
@@ -1504,9 +1563,8 @@ makeSettingToggle("Super Speed (WalkSpeed 50)", "Enforce increased movement velo
     end
 end)
 
--- 7. Infinite Jump
 local infJumpConn = nil
-makeSettingToggle("Infinite Jump", "Jump repeatedly mid-air to reach any height", false, function(enabled)
+makeSettingToggle("Infinite Jump", "Jump infinitely in air", false, function(enabled)
     if infJumpConn then infJumpConn:Disconnect() infJumpConn = nil end
     if enabled then
         infJumpConn = UserInputService.JumpRequest:Connect(function()
@@ -1519,9 +1577,8 @@ makeSettingToggle("Infinite Jump", "Jump repeatedly mid-air to reach any height"
     end
 end)
 
--- 8. Noclip
 local noclipConn = nil
-makeSettingToggle("Noclip Collision Ghost", "Walk directly through all map obstacles", false, function(enabled)
+makeSettingToggle("Noclip Collision Ghost", "Walk through map barriers", false, function(enabled)
     if noclipConn then noclipConn:Disconnect() noclipConn = nil end
     if enabled then
         noclipConn = RunService.Stepped:Connect(function()
@@ -1539,7 +1596,7 @@ makeSettingToggle("Noclip Collision Ghost", "Walk directly through all map obsta
 end)
 
 -- ==========================================
--- [13] TAB NAVIGATION WITH FADE IN / OUT
+-- [13] TAB SWITCHING ENGINE
 -- ==========================================
 local currentTab = "Executor"
 local isTransitioning = false
@@ -1556,8 +1613,8 @@ function switchTab(tabName)
 
     local targetBtn = dockButtons[tabName]
     if targetBtn then
-        TweenService:Create(activePill, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -4, 0, targetBtn.Position.Y.Offset + 4)
+        TweenService:Create(activePill, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -3, 0, targetBtn.Position.Y.Offset + 3)
         }):Play()
 
         for name, btn in pairs(dockButtons) do
@@ -1575,8 +1632,8 @@ function switchTab(tabName)
     local newPage = pages[tabName]
 
     if oldPage then
-        local fadeOut = TweenService:Create(oldPage, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, -10, 0, 0)
+        local fadeOut = TweenService:Create(oldPage, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, -8, 0, 0)
         })
         fadeOut:Play()
         fadeOut.Completed:Connect(function()
@@ -1584,9 +1641,9 @@ function switchTab(tabName)
             oldPage.Position = UDim2.new(0, 0, 0, 0)
 
             if newPage then
-                newPage.Position = UDim2.new(0, 10, 0, 0)
+                newPage.Position = UDim2.new(0, 8, 0, 0)
                 newPage.Visible = true
-                local fadeIn = TweenService:Create(newPage, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                local fadeIn = TweenService:Create(newPage, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Position = UDim2.new(0, 0, 0, 0)
                 })
                 fadeIn:Play()
@@ -1631,4 +1688,4 @@ floatingBubble.MouseButton1Click:Connect(function()
     container.Visible = true
 end)
 
-print("[ORC] Titan Framework v7.0 Ready.")
+print("[ORC] Titan Framework v8.0 Active.")
