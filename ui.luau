@@ -212,8 +212,8 @@ ProtectGui(ScreenGui)
 -- ==================== MAIN (Wider) ====================
 local Main = Create("Frame", {
     Name = "Main",
-    Size = UDim2.new(0, 420, 0, 540),
-    Position = UDim2.new(0.5, -210, 0.5, -270),
+    Size = UDim2.new(0, 520, 0, 540),
+    Position = UDim2.new(0.5, -260, 0.5, -270),
     BackgroundColor3 = Config.Bg,
     BorderSizePixel = 0,
     ClipsDescendants = true,
