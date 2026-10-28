@@ -1,744 +1,339 @@
---[[
-  NEO HYPER - Key UI Source (Junkie)
-  Paste into Junkie Dashboard -> Script -> UI Source
-
-  Step 1 (tiny): script name + Free / Premium only
-  Step 2 (larger): enter key
-  Prefix rules stay internal (NEO-FREE / NEO-PRM) — never shown on UI
-]]
+--[[ NEO UI - واجهة بس (أبيض وأسود)
+     حطه LocalScript جوه StarterGui (أو شغله من الإكسكيوتر)
+     كل الأزرار متوصلة بـ Handlers تحت، تكتب فيها اللوجيك بعدين ]]
 
 local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
-local LP = Players.LocalPlayer
+-- ========= الإعدادات =========
+local CONFIG = {
+	Title = "NEO",
+	-- لو رفعت الصور على روبلوكس حط الـ ID هنا (rbxassetid://123)
+	IconAsset = "",
+	BannerAsset = "",
+	IconURL = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon.png",
+	BannerURL = "https://raw.githubusercontent.com/MITTO-m4x/Neo_EVADE/main/EVADE/scr/Photo/Icon2.png",
+}
 
-getgenv().SCRIPT_KEY = nil
-getgenv().UI_CLOSED = false
-getgenv().NEO_KEY_OK = false
-getgenv().NEO_VERSION = nil
+local C = {
+	BG = Color3.fromRGB(8, 8, 8),
+	Panel = Color3.fromRGB(16, 16, 16),
+	Panel2 = Color3.fromRGB(24, 24, 24),
+	Stroke = Color3.fromRGB(55, 55, 55),
+	White = Color3.fromRGB(245, 245, 245),
+	Gray = Color3.fromRGB(150, 150, 150),
+	Black = Color3.fromRGB(0, 0, 0),
+}
 
-local SERVICE_NAME = "Hyper v1.0"
-local OWNER_IDENTIFIER = "1068884"
-local PROVIDER_NAME = "Hyper"
+-- ========= Handlers (هنا هتكتب اللوجيك بعدين) =========
+local UI = {}
+local Handlers = {
+	ExecuteClipboard = function(text) UI.Notify("Execute Clipboard: not connected yet") end,
+	ExecuteEditor = function(text) UI.Notify("Execute: not connected yet") end,
+	LoadScript = function(entry) UI.Notify("Load: " .. entry.name .. " (not connected yet)") end,
+}
 
-local DISCORD_LINK = "https://discord.gg/YbDMqpAr3a"
-local WEBSITE_LINK = "https://neo-website-87k.pages.dev/"
-
-local KEY_FOLDER = "Neo-EVADE"
-local KEY_FILE = KEY_FOLDER .. "/key_cache.txt"
-local VER_FILE = KEY_FOLDER .. "/version_cache.txt"
-
--- internal only — never printed on UI
-local PREFIX_FREE = "NEO-FREE"
-local PREFIX_PREMIUM = "NEO-PRM"
-
-local white = Color3.fromRGB(255, 255, 255)
-local black = Color3.fromRGB(0, 0, 0)
-local fieldBg = Color3.fromRGB(14, 14, 14)
-local mutedText = Color3.fromRGB(150, 150, 150)
-local redText = Color3.fromRGB(235, 70, 70)
-
-local parentGui = nil
-pcall(function()
-	parentGui = game:GetService("CoreGui")
-end)
-if not parentGui then
-	pcall(function()
-		parentGui = LP:WaitForChild("PlayerGui", 5)
-	end)
+-- ========= أدوات =========
+local function make(class, props, parent)
+	local o = Instance.new(class)
+	for k, v in pairs(props) do o[k] = v end
+	if parent then o.Parent = parent end
+	return o
 end
 
-local Junkie = nil
+local function corner(o, r) return make("UICorner", {CornerRadius = UDim.new(0, r or 6)}, o) end
+local function stroke(o, col) return make("UIStroke", {Color = col or C.Stroke, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border}, o) end
+
+local function hover(btn, normal, over)
+	btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundColor3 = over}):Play() end)
+	btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundColor3 = normal}):Play() end)
+end
+
+-- تحميل صورة من رابط (بيشتغل في الإكسكيوتر اللي فيه writefile/getcustomasset)
+local function remoteImage(url, name)
+	local ok, res = pcall(function()
+		if not (writefile and getcustomasset and (request or http_request)) then return nil end
+		local r = (request or http_request)({Url = url, Method = "GET"})
+		if r and r.Body then
+			writefile(name, r.Body)
+			return getcustomasset(name)
+		end
+	end)
+	return ok and res or nil
+end
+
+-- ========= ScreenGui =========
+local parentGui = (gethui and gethui()) or Players.LocalPlayer:WaitForChild("PlayerGui")
+local old = parentGui:FindFirstChild("NeoUI")
+if old then old:Destroy() end
+
+local gui = make("ScreenGui", {Name = "NeoUI", ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling}, parentGui)
+
+local win = make("Frame", {
+	Size = UDim2.fromOffset(640, 400), Position = UDim2.new(0.5, -320, 0.5, -200),
+	BackgroundColor3 = C.BG, BorderSizePixel = 0,
+}, gui)
+corner(win, 10); stroke(win)
+
+-- ========= Top bar =========
+local top = make("Frame", {Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, win)
+corner(top, 10)
+make("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, top)
+
+local icon = make("ImageLabel", {
+	Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(10, 7),
+	BackgroundTransparency = 1, Image = CONFIG.IconAsset, ScaleType = Enum.ScaleType.Fit,
+}, top)
+
+make("TextLabel", {
+	Size = UDim2.new(0, 200, 1, 0), Position = UDim2.fromOffset(44, 0), BackgroundTransparency = 1,
+	Text = CONFIG.Title, TextColor3 = C.White, Font = Enum.Font.GothamBlack, TextSize = 18,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, top)
+
+local function topBtn(text, xOff)
+	local b = make("TextButton", {
+		Size = UDim2.fromOffset(28, 28), Position = UDim2.new(1, xOff, 0, 6),
+		BackgroundColor3 = C.Panel2, Text = text, TextColor3 = C.White,
+		Font = Enum.Font.GothamBold, TextSize = 14, AutoButtonColor = false,
+	}, top)
+	corner(b, 6); hover(b, C.Panel2, C.Stroke)
+	return b
+end
+local closeBtn = topBtn("X", -36)
+local minBtn = topBtn("-", -70)
+
+-- سحب النافذة (ماوس + لمس)
 do
-	local ok, lib = pcall(function()
-		return loadstring(game:HttpGet("https://jnkie.com/sdk/library.lua"))()
+	local dragging, startPos, startInput
+	top.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragging, startPos, startInput = true, win.Position, i.Position
+			i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then dragging = false end end)
+		end
 	end)
-	if ok and type(lib) == "table" then
-		Junkie = lib
-		Junkie.service = SERVICE_NAME
-		Junkie.identifier = OWNER_IDENTIFIER
-		Junkie.provider = PROVIDER_NAME
-	end
-end
-
-local function ensureFolder()
-	pcall(function()
-		if type(makefolder) == "function" then
-			if type(isfolder) ~= "function" or not isfolder(KEY_FOLDER) then
-				makefolder(KEY_FOLDER)
-			end
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+			local d = i.Position - startInput
+			win.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
 		end
 	end)
 end
 
-local function loadCachedKey()
-	ensureFolder()
-	local key = nil
-	pcall(function()
-		if type(readfile) ~= "function" then return end
-		if type(isfile) == "function" and not isfile(KEY_FILE) then return end
-		local raw = string.gsub(tostring(readfile(KEY_FILE) or ""), "%s+", "")
-		if #raw > 0 then key = raw end
-	end)
-	return key
+-- ========= Sidebar =========
+local side = make("Frame", {Size = UDim2.new(0, 150, 1, -48), Position = UDim2.fromOffset(8, 44), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, win)
+corner(side, 8); stroke(side)
+
+local banner = make("ImageLabel", {
+	Size = UDim2.new(1, -16, 0, 60), Position = UDim2.fromOffset(8, 8),
+	BackgroundColor3 = C.Black, Image = CONFIG.BannerAsset, ScaleType = Enum.ScaleType.Fit,
+}, side)
+corner(banner, 6); stroke(banner)
+
+local tabHolder = make("Frame", {Size = UDim2.new(1, -16, 1, -84), Position = UDim2.fromOffset(8, 76), BackgroundTransparency = 1}, side)
+make("UIListLayout", {Padding = UDim.new(0, 6)}, tabHolder)
+
+-- ========= Content =========
+local content = make("Frame", {Size = UDim2.new(1, -174, 1, -48), Position = UDim2.fromOffset(166, 44), BackgroundTransparency = 1}, win)
+
+local pages, tabs = {}, {}
+local function newPage(name)
+	local p = make("Frame", {Name = name, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false}, content)
+	pages[name] = p
+	return p
 end
 
-local function loadCachedVersion()
-	ensureFolder()
-	local ver = nil
-	pcall(function()
-		if type(readfile) ~= "function" then return end
-		if type(isfile) == "function" and not isfile(VER_FILE) then return end
-		local raw = string.upper(string.gsub(tostring(readfile(VER_FILE) or ""), "%s+", ""))
-		if raw == "FREE" or raw == "PREMIUM" then ver = raw end
-	end)
-	return ver
-end
-
-local function saveCachedKey(key)
-	pcall(function()
-		ensureFolder()
-		if type(writefile) == "function" then writefile(KEY_FILE, tostring(key)) end
-	end)
-end
-
-local function saveCachedVersion(ver)
-	pcall(function()
-		ensureFolder()
-		if type(writefile) == "function" then writefile(VER_FILE, tostring(ver)) end
-	end)
-end
-
-local function clearCachedKey()
-	pcall(function()
-		ensureFolder()
-		if type(writefile) == "function" then writefile(KEY_FILE, "") end
-	end)
-end
-
-local function copyText(text)
-	pcall(function()
-		if type(setclipboard) == "function" then setclipboard(text)
-		elseif type(toclipboard) == "function" then toclipboard(text) end
-	end)
-end
-
-local function startsWith(str, prefix)
-	str = string.upper(tostring(str or ""))
-	prefix = string.upper(tostring(prefix or ""))
-	return string.sub(str, 1, #prefix) == prefix
-end
-
-local function showToast(line2)
-	task.spawn(function()
-		pcall(function()
-			if not parentGui then return end
-			local old = parentGui:FindFirstChild("NeoHyperToast")
-			if old then old:Destroy() end
-			local tg = Instance.new("ScreenGui")
-			tg.Name = "NeoHyperToast"
-			tg.ResetOnSpawn = false
-			tg.IgnoreGuiInset = true
-			tg.DisplayOrder = 999999
-			tg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-			tg.Parent = parentGui
-			local outer = Instance.new("Frame")
-			outer.AnchorPoint = Vector2.new(0.5, 0)
-			outer.Position = UDim2.new(0.5, 0, 0, -70)
-			outer.Size = UDim2.fromOffset(240, 54)
-			outer.BackgroundColor3 = white
-			outer.BorderSizePixel = 0
-			outer.Parent = tg
-			Instance.new("UICorner", outer).CornerRadius = UDim.new(0, 12)
-			local inner = Instance.new("Frame")
-			inner.AnchorPoint = Vector2.new(0.5, 0.5)
-			inner.Position = UDim2.fromScale(0.5, 0.5)
-			inner.Size = UDim2.new(1, -2, 1, -2)
-			inner.BackgroundColor3 = black
-			inner.BorderSizePixel = 0
-			inner.Parent = outer
-			Instance.new("UICorner", inner).CornerRadius = UDim.new(0, 11)
-			local l1 = Instance.new("TextLabel")
-			l1.BackgroundTransparency = 1
-			l1.Position = UDim2.fromOffset(0, 8)
-			l1.Size = UDim2.new(1, 0, 0, 18)
-			l1.Font = Enum.Font.GothamBold
-			l1.TextSize = 14
-			l1.TextColor3 = white
-			l1.Text = "Loading script..."
-			l1.Parent = inner
-			local l2 = Instance.new("TextLabel")
-			l2.BackgroundTransparency = 1
-			l2.Position = UDim2.fromOffset(0, 28)
-			l2.Size = UDim2.new(1, 0, 0, 16)
-			l2.Font = Enum.Font.Gotham
-			l2.TextSize = 12
-			l2.TextColor3 = mutedText
-			l2.Text = tostring(line2 or "Thanks for using Neo")
-			l2.Parent = inner
-			TweenService:Create(outer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-				Position = UDim2.new(0.5, 0, 0, 18),
-			}):Play()
-			task.wait(1.6)
-			TweenService:Create(outer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-				Position = UDim2.new(0.5, 0, 0, -70),
-			}):Play()
-			task.wait(0.22)
-			tg:Destroy()
-		end)
-	end)
-end
-
-local URL_FREE = "https://api.jnkie.com/api/v1/luascripts/public/2d260aa3dccc9311613ea8eb118dc5e5af560ee599415808d61d68fd391022ee/download"
-local URL_PREMIUM = "https://api.jnkie.com/api/v1/luascripts/public/568c637a8bf344668ee9f107c51917ae22457eb3a251d7e973561429f8211a0d/download"
-local URL_KEYLESS = "https://raw.githubusercontent.com/v-zxn/III-V/refs/heads/main/HI"
-
-local protectedScriptStarted = false
-local function runProtectedScript()
-	if protectedScriptStarted then return end
-	protectedScriptStarted = true
-	task.spawn(function()
-		local key = tostring(getgenv().SCRIPT_KEY or "")
-		local ver = string.upper(tostring(getgenv().NEO_VERSION or ""))
-		local url = (key == "KEYLESS") and URL_KEYLESS
-			or ((ver == "PREMIUM") and URL_PREMIUM or URL_FREE)
-		local ok, err = pcall(function()
-			local source = game:HttpGet(url)
-			local chunk, compileErr = loadstring(source)
-			if not chunk then error(compileErr or "Could not compile script") end
-			chunk()
-		end)
-		if not ok then warn("[Neo Hyper] Protected script failed:", err) end
-	end)
-end
-
--- Internal prefix + Junkie. UI never shows prefixes.
-local function verifyKey(key, version)
-	key = string.gsub(tostring(key or ""), "%s+", "")
-	version = string.upper(tostring(version or ""))
-	if key == "" then return false, "Enter a key", false end
-	-- Explicit KEYLESS route: load the configured external script instead of Junkie FREE.
-	if key == "KEYLESS" then
-		if version ~= "FREE" then return false, "Wrong key", true end
-		getgenv().SCRIPT_KEY = "KEYLESS"
-		getgenv().NEO_VERSION = "FREE"
-		return true, "OK", false
-	end
-	if version == "FREE" then
-		if not startsWith(key, PREFIX_FREE) then return false, "Wrong key", true end
-	elseif version == "PREMIUM" then
-		if not startsWith(key, PREFIX_PREMIUM) then return false, "Wrong key", true end
-	else
-		return false, "Pick a version first", false
-	end
-	if not Junkie or type(Junkie.check_key) ~= "function" then
-		return false, "Key service unavailable", false
-	end
-	local callOk, result = pcall(Junkie.check_key, key)
-	if not callOk then return false, "Could not reach the key service", false end
-	if type(result) ~= "table" then return false, "Invalid response", false end
-	if not result.valid then return false, "Wrong key", true end
-	if result.message == "KEYLESS" or result.is_keyless == true then
-		if version ~= "FREE" then return false, "Wrong key", true end
-		getgenv().SCRIPT_KEY = "KEYLESS"
-		getgenv().NEO_VERSION = "FREE"
-		return true, "OK", false
-	end
-	getgenv().SCRIPT_KEY = key
-	getgenv().NEO_VERSION = version
-	return true, "OK", false
-end
-
-local function copyKeyLink()
-	if not Junkie or type(Junkie.get_key_link) ~= "function" then
-		return false, "Link unavailable"
-	end
-	local link, err = nil, nil
-	local callOk = pcall(function() link, err = Junkie.get_key_link() end)
-	if not callOk then return false, "Could not reach service" end
-	if type(link) == "string" and #link > 0 then
-		copyText(link)
-		return true, "Link copied"
-	end
-	if err == "RATE_LIMITTED" then return false, "Wait a moment" end
-	return false, tostring(err or "Could not get link")
-end
-
-do
-	local cached = loadCachedKey()
-	local cachedVer = loadCachedVersion()
-	if cached and cachedVer then
-		local okV, _, isInvalid = verifyKey(cached, cachedVer)
-		if okV then
-			getgenv().NEO_KEY_OK = true
-			getgenv().NEO_VERSION = cachedVer
-			showToast(cachedVer == "PREMIUM" and "Premium" or "Free")
-			runProtectedScript()
-			return
-		end
-		if isInvalid then clearCachedKey() end
+local function selectTab(name)
+	for n, p in pairs(pages) do p.Visible = (n == name) end
+	for n, b in pairs(tabs) do
+		local active = (n == name)
+		b.BackgroundColor3 = active and C.White or C.Panel2
+		b.TextColor3 = active and C.Black or C.White
 	end
 end
 
--- ========================= UI =========================
-local done = false
-local selectedKey = nil
-local selectedVersion = nil
-local connections = {}
-local starConn = nil
-
-local function bind(c)
-	table.insert(connections, c)
-	return c
+local function newTab(name, label)
+	local b = make("TextButton", {
+		Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = C.Panel2, Text = label,
+		TextColor3 = C.White, Font = Enum.Font.GothamMedium, TextSize = 13, AutoButtonColor = false,
+	}, tabHolder)
+	corner(b, 6)
+	b.MouseButton1Click:Connect(function() selectTab(name) end)
+	tabs[name] = b
 end
 
-pcall(function()
-	if parentGui then
-		local old = parentGui:FindFirstChild("NeoHyperKeyGate")
-		if old then old:Destroy() end
-	end
-end)
+-- ===== Page: Editor =====
+local editorPage = newPage("Editor")
+newTab("Editor", "Editor")
 
--- sizes
-local W1, H1 = 260, 150 -- step 1 tiny
-local W2, H2 = 340, 300 -- step 2 key
-local PAD = 16
+local editorBox = make("Frame", {Size = UDim2.new(1, 0, 1, -88), BackgroundColor3 = C.Panel, BorderSizePixel = 0}, editorPage)
+corner(editorBox, 8); stroke(editorBox)
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "NeoHyperKeyGate"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.DisplayOrder = 999999
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-if parentGui then gui.Parent = parentGui end
+local scroll = make("ScrollingFrame", {
+	Size = UDim2.new(1, -12, 1, -12), Position = UDim2.fromOffset(6, 6), BackgroundTransparency = 1,
+	BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = C.Gray,
+	CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+}, editorBox)
 
--- Full-screen star field background
-local starLayer = Instance.new("Frame")
-starLayer.Name = "Stars"
-starLayer.Size = UDim2.fromScale(1, 1)
-starLayer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-starLayer.BackgroundTransparency = 0.15
-starLayer.BorderSizePixel = 0
-starLayer.ZIndex = 1
-starLayer.Parent = gui
+local editor = make("TextBox", {
+	Size = UDim2.new(1, -4, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
+	Text = "", PlaceholderText = "-- اكتب السكريبت هنا...", PlaceholderColor3 = C.Gray,
+	TextColor3 = C.White, Font = Enum.Font.Code, TextSize = 14, TextWrapped = true,
+	TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+	ClearTextOnFocus = false, MultiLine = true,
+}, scroll)
 
-local stars = {}
-local STAR_COUNT = 48
-for i = 1, STAR_COUNT do
-	local s = Instance.new("Frame")
-	s.BorderSizePixel = 0
-	s.BackgroundColor3 = white
-	s.AnchorPoint = Vector2.new(0.5, 0.5)
-	local sz = math.random(1, 3)
-	s.Size = UDim2.fromOffset(sz, sz)
-	s.Position = UDim2.fromScale(math.random(), math.random())
-	s.BackgroundTransparency = math.random(0, 40) / 100
-	s.ZIndex = 1
-	s.Parent = starLayer
-	Instance.new("UICorner", s).CornerRadius = UDim.new(1, 0)
-	stars[i] = {
-		f = s,
-		speed = 0.35 + math.random() * 1.1, -- fast drift
-		x = s.Position.X.Scale,
-		y = s.Position.Y.Scale,
-		tw = math.random() * math.pi * 2,
-	}
+local status = make("TextLabel", {
+	Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 1, -84), BackgroundTransparency = 1,
+	Text = "Ready", TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, editorPage)
+
+function UI.Notify(msg)
+	status.Text = msg
 end
 
-starConn = RunService.RenderStepped:Connect(function(dt)
-	dt = math.clamp(dt, 0, 0.05)
-	for i = 1, #stars do
-		local st = stars[i]
-		-- race downward-left (shooting feel)
-		st.y = st.y + st.speed * dt * 0.55
-		st.x = st.x - st.speed * dt * 0.22
-		if st.y > 1.05 or st.x < -0.05 then
-			st.y = -math.random() * 0.08
-			st.x = math.random() * 1.05
-			st.speed = 0.4 + math.random() * 1.2
-		end
-		st.tw = st.tw + dt * 6
-		st.f.Position = UDim2.fromScale(st.x, st.y)
-		st.f.BackgroundTransparency = 0.15 + 0.35 * (0.5 + 0.5 * math.sin(st.tw))
-	end
-end)
-table.insert(connections, starConn)
+-- الأزرار التلاتة
+local btnRow = make("Frame", {Size = UDim2.new(1, 0, 0, 40), Position = UDim2.new(0, 0, 1, -40), BackgroundTransparency = 1}, editorPage)
+make("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8)}, btnRow)
 
-local shade = Instance.new("Frame")
-shade.Size = UDim2.fromScale(1, 1)
-shade.BackgroundTransparency = 1
-shade.BorderSizePixel = 0
-shade.ZIndex = 2
-shade.Parent = gui
-
-local shell = Instance.new("Frame")
-shell.Name = "Shell"
-shell.AnchorPoint = Vector2.new(0.5, 0.5)
-shell.Position = UDim2.fromScale(0.5, 0.5)
-shell.Size = UDim2.fromOffset(0, 0)
-shell.BackgroundTransparency = 1
-shell.BorderSizePixel = 0
-shell.ZIndex = 3
-shell.Parent = shade
-
-local border = Instance.new("Frame")
-border.Size = UDim2.fromScale(1, 1)
-border.BackgroundColor3 = white
-border.BorderSizePixel = 0
-border.Parent = shell
-Instance.new("UICorner", border).CornerRadius = UDim.new(0, 14)
-
-local panel = Instance.new("Frame")
-panel.AnchorPoint = Vector2.new(0.5, 0.5)
-panel.Position = UDim2.fromScale(0.5, 0.5)
-panel.Size = UDim2.new(1, -2, 1, -2)
-panel.BackgroundColor3 = black
-panel.BorderSizePixel = 0
-panel.ClipsDescendants = true
-panel.Parent = border
-Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 13)
-
--- drag
-local dragBar = Instance.new("TextButton")
-dragBar.Size = UDim2.new(1, 0, 0, 40)
-dragBar.BackgroundTransparency = 1
-dragBar.Text = ""
-dragBar.ZIndex = 5
-dragBar.Parent = panel
-local dragging, dragStart, startPos = false, nil, nil
-bind(dragBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = shell.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then dragging = false end
-		end)
-	end
-end))
-bind(UserInputService.InputChanged:Connect(function(input)
-	if not dragging or not dragStart or not startPos then return end
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		local d = input.Position - dragStart
-		shell.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-	end
-end))
-
-local titleL = Instance.new("TextLabel")
-titleL.BackgroundTransparency = 1
-titleL.Position = UDim2.fromOffset(0, 12)
-titleL.Size = UDim2.new(1, 0, 0, 26)
-titleL.Font = Enum.Font.GothamBold
-titleL.TextSize = 20
-titleL.TextColor3 = white
-titleL.Text = "Neo Hyper"
-titleL.Parent = panel
-
--- ===== STEP 1: only two buttons =====
-local freeBtn = Instance.new("TextButton")
-freeBtn.Name = "Free"
-freeBtn.Position = UDim2.fromOffset(PAD, 52)
-freeBtn.Size = UDim2.new(0.5, -PAD - 4, 0, 40)
-freeBtn.BackgroundColor3 = fieldBg
-freeBtn.BorderSizePixel = 0
-freeBtn.Font = Enum.Font.GothamBold
-freeBtn.TextSize = 14
-freeBtn.TextColor3 = white
-freeBtn.Text = "Free"
-freeBtn.AutoButtonColor = false
-freeBtn.Parent = panel
-Instance.new("UICorner", freeBtn).CornerRadius = UDim.new(0, 10)
-
-local premBtn = Instance.new("TextButton")
-premBtn.Name = "Premium"
-premBtn.AnchorPoint = Vector2.new(1, 0)
-premBtn.Position = UDim2.new(1, -PAD, 0, 52)
-premBtn.Size = UDim2.new(0.5, -PAD - 4, 0, 40)
-premBtn.BackgroundColor3 = white
-premBtn.BorderSizePixel = 0
-premBtn.Font = Enum.Font.GothamBold
-premBtn.TextSize = 14
-premBtn.TextColor3 = black
-premBtn.Text = "Premium"
-premBtn.AutoButtonColor = false
-premBtn.Parent = panel
-Instance.new("UICorner", premBtn).CornerRadius = UDim.new(0, 10)
-
-freeBtn.MouseEnter:Connect(function()
-	TweenService:Create(freeBtn, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(32, 32, 32) }):Play()
-end)
-freeBtn.MouseLeave:Connect(function()
-	TweenService:Create(freeBtn, TweenInfo.new(0.1), { BackgroundColor3 = fieldBg }):Play()
-end)
-premBtn.MouseEnter:Connect(function()
-	TweenService:Create(premBtn, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(220, 220, 220) }):Play()
-end)
-premBtn.MouseLeave:Connect(function()
-	TweenService:Create(premBtn, TweenInfo.new(0.1), { BackgroundColor3 = white }):Play()
-end)
-
-local exitBtn = Instance.new("TextButton")
-exitBtn.BackgroundTransparency = 1
-exitBtn.AnchorPoint = Vector2.new(0.5, 1)
-exitBtn.Position = UDim2.new(0.5, 0, 1, -10)
-exitBtn.Size = UDim2.fromOffset(60, 18)
-exitBtn.Font = Enum.Font.Gotham
-exitBtn.TextSize = 12
-exitBtn.TextColor3 = Color3.fromRGB(100, 100, 100)
-exitBtn.Text = "Exit"
-exitBtn.AutoButtonColor = false
-exitBtn.Parent = panel
-
--- ===== STEP 2 elements (hidden) =====
-local hintL = Instance.new("TextLabel")
-hintL.BackgroundTransparency = 1
-hintL.Position = UDim2.fromOffset(PAD, 42)
-hintL.Size = UDim2.new(1, -PAD * 2, 0, 18)
-hintL.Font = Enum.Font.Gotham
-hintL.TextSize = 12
-hintL.TextColor3 = mutedText
-hintL.Text = "Enter your key"
-hintL.Visible = false
-hintL.Parent = panel
-
-local box = Instance.new("TextBox")
-box.Position = UDim2.fromOffset(PAD, 68)
-box.Size = UDim2.new(1, -PAD * 2, 0, 40)
-box.BackgroundColor3 = fieldBg
-box.BorderSizePixel = 0
-box.Font = Enum.Font.GothamMedium
-box.TextSize = 14
-box.TextColor3 = white
-box.PlaceholderText = "Key"
-box.PlaceholderColor3 = Color3.fromRGB(90, 90, 90)
-box.Text = ""
-box.ClearTextOnFocus = false
-box.TextXAlignment = Enum.TextXAlignment.Center
-box.Visible = false
-box.Parent = panel
-Instance.new("UICorner", box).CornerRadius = UDim.new(0, 10)
-
-local status = Instance.new("TextLabel")
-status.BackgroundTransparency = 1
-status.Position = UDim2.fromOffset(PAD, 114)
-status.Size = UDim2.new(1, -PAD * 2, 0, 16)
-status.Font = Enum.Font.Gotham
-status.TextSize = 12
-status.TextColor3 = redText
-status.TextXAlignment = Enum.TextXAlignment.Left
-status.Text = ""
-status.Visible = false
-status.Parent = panel
-
-local function makeSmallBtn(name, xScale, y, primary)
-	local b = Instance.new("TextButton")
-	b.Name = name
-	b.AnchorPoint = Vector2.new(xScale, 0)
-	b.Position = UDim2.new(xScale, xScale == 0 and PAD or -PAD, 0, y)
-	b.Size = UDim2.new(0.5, -PAD - 4, 0, 36)
-	b.BorderSizePixel = 0
-	b.Font = Enum.Font.GothamBold
-	b.TextSize = 13
-	b.Text = name
-	b.AutoButtonColor = false
-	b.Visible = false
-	b.Parent = panel
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
-	if primary then
-		b.BackgroundColor3 = white
-		b.TextColor3 = black
-	else
-		b.BackgroundColor3 = fieldBg
-		b.TextColor3 = white
-	end
+local function bigBtn(text, primary)
+	local bg = primary and C.White or C.Panel2
+	local b = make("TextButton", {
+		Size = UDim2.new(1/3, -6, 1, 0), BackgroundColor3 = bg, Text = text,
+		TextColor3 = primary and C.Black or C.White, Font = Enum.Font.GothamBold, TextSize = 13, AutoButtonColor = false,
+	}, btnRow)
+	corner(b, 8)
+	if not primary then stroke(b) end
+	hover(b, bg, primary and Color3.fromRGB(210, 210, 210) or C.Stroke)
 	return b
 end
 
-local linkBtn = makeSmallBtn("Get Key", 0, 140, false)
-local checkBtn = makeSmallBtn("Submit", 1, 140, true)
-local discordBtn = makeSmallBtn("Discord", 0, 186, false)
-local websiteBtn = makeSmallBtn("Website", 1, 186, false)
+local execClipBtn = bigBtn("Execute Clipboard", false)
+local execBtn = bigBtn("Execute", true)
+local clearBtn = bigBtn("Clear", false)
 
-local backBtn = Instance.new("TextButton")
-backBtn.BackgroundTransparency = 1
-backBtn.Position = UDim2.fromOffset(PAD, 0)
-backBtn.Size = UDim2.fromOffset(50, 18)
-backBtn.AnchorPoint = Vector2.new(0, 1)
-backBtn.Position = UDim2.new(0, PAD, 1, -10)
-backBtn.Font = Enum.Font.Gotham
-backBtn.TextSize = 12
-backBtn.TextColor3 = Color3.fromRGB(100, 100, 100)
-backBtn.Text = "← Back"
-backBtn.Visible = false
-backBtn.AutoButtonColor = false
-backBtn.Parent = panel
+execClipBtn.MouseButton1Click:Connect(function()
+	local text = (getclipboard and getclipboard()) or ""
+	if text == "" then UI.Notify("الكليب بورد فاضي أو مش مدعوم") return end
+	Handlers.ExecuteClipboard(text)
+end)
+execBtn.MouseButton1Click:Connect(function() Handlers.ExecuteEditor(editor.Text) end)
+clearBtn.MouseButton1Click:Connect(function() editor.Text = ""; UI.Notify("Cleared") end)
 
-local function setStatus(msg, isError)
-	status.Text = tostring(msg or "")
-	status.TextColor3 = isError and redText or mutedText
+-- ===== Page: Scripts (بحث) =====
+local scriptsPage = newPage("Scripts")
+newTab("Scripts", "Scripts")
+
+local search = make("TextBox", {
+	Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = C.Panel, Text = "", PlaceholderText = "ابحث عن سكريبت...",
+	PlaceholderColor3 = C.Gray, TextColor3 = C.White, Font = Enum.Font.Gotham, TextSize = 13,
+	ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left,
+}, scriptsPage)
+corner(search, 8); stroke(search)
+make("UIPadding", {PaddingLeft = UDim.new(0, 10)}, search)
+
+local list = make("ScrollingFrame", {
+	Size = UDim2.new(1, 0, 1, -42), Position = UDim2.fromOffset(0, 42), BackgroundTransparency = 1,
+	BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = C.Gray,
+	CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+}, scriptsPage)
+make("UIListLayout", {Padding = UDim.new(0, 6)}, list)
+
+-- ضيف سكريبتاتك هنا بعدين
+local SCRIPTS = {
+	{name = "NEO HYPER EVADE", desc = "Evade script"},
+	{name = "Neo Blade Ball", desc = "Blade Ball script"},
+	{name = "Neo FATS", desc = "FATS script"},
+	{name = "Neo Universal", desc = "Universal script"},
+}
+
+local rows = {}
+for _, entry in ipairs(SCRIPTS) do
+	local row = make("Frame", {Size = UDim2.new(1, -4, 0, 48), BackgroundColor3 = C.Panel}, list)
+	corner(row, 8); stroke(row)
+	make("TextLabel", {
+		Size = UDim2.new(1, -90, 0, 22), Position = UDim2.fromOffset(10, 4), BackgroundTransparency = 1,
+		Text = entry.name, TextColor3 = C.White, Font = Enum.Font.GothamBold, TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+	make("TextLabel", {
+		Size = UDim2.new(1, -90, 0, 16), Position = UDim2.fromOffset(10, 26), BackgroundTransparency = 1,
+		Text = entry.desc, TextColor3 = C.Gray, Font = Enum.Font.Gotham, TextSize = 11,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+	local load = make("TextButton", {
+		Size = UDim2.fromOffset(64, 28), Position = UDim2.new(1, -74, 0.5, -14), BackgroundColor3 = C.White,
+		Text = "Load", TextColor3 = C.Black, Font = Enum.Font.GothamBold, TextSize = 12, AutoButtonColor = false,
+	}, row)
+	corner(load, 6)
+	load.MouseButton1Click:Connect(function() Handlers.LoadScript(entry) end)
+	rows[#rows + 1] = {frame = row, name = entry.name:lower()}
 end
 
-local function tweenSize(w, h)
-	TweenService:Create(shell, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Size = UDim2.fromOffset(w, h),
-	}):Play()
+search:GetPropertyChangedSignal("Text"):Connect(function()
+	local q = search.Text:lower()
+	for _, r in ipairs(rows) do r.frame.Visible = (q == "" or r.name:find(q, 1, true) ~= nil) end
+end)
+
+-- ===== Page: Settings =====
+local settingsPage = newPage("Settings")
+newTab("Settings", "Settings")
+
+local function toggle(label, y, default, cb)
+	local row = make("Frame", {Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, y), BackgroundColor3 = C.Panel}, settingsPage)
+	corner(row, 8); stroke(row)
+	make("TextLabel", {
+		Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(12, 0), BackgroundTransparency = 1,
+		Text = label, TextColor3 = C.White, Font = Enum.Font.GothamMedium, TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+	local state = default
+	local sw = make("TextButton", {
+		Size = UDim2.fromOffset(46, 22), Position = UDim2.new(1, -58, 0.5, -11),
+		BackgroundColor3 = state and C.White or C.Stroke, Text = "", AutoButtonColor = false,
+	}, row)
+	corner(sw, 11)
+	local knob = make("Frame", {
+		Size = UDim2.fromOffset(18, 18), Position = state and UDim2.fromOffset(26, 2) or UDim2.fromOffset(2, 2),
+		BackgroundColor3 = state and C.Black or C.White, BorderSizePixel = 0,
+	}, sw)
+	corner(knob, 9)
+	sw.MouseButton1Click:Connect(function()
+		state = not state
+		TweenService:Create(sw, TweenInfo.new(0.15), {BackgroundColor3 = state and C.White or C.Stroke}):Play()
+		TweenService:Create(knob, TweenInfo.new(0.15), {
+			Position = state and UDim2.fromOffset(26, 2) or UDim2.fromOffset(2, 2),
+			BackgroundColor3 = state and C.Black or C.White,
+		}):Play()
+		cb(state)
+	end)
 end
 
-local function showStep1()
-	selectedVersion = nil
-	titleL.Text = "Neo Hyper"
-	titleL.TextSize = 20
-	titleL.Position = UDim2.fromOffset(0, 12)
-	freeBtn.Visible = true
-	premBtn.Visible = true
-	hintL.Visible = false
-	box.Visible = false
-	status.Visible = false
-	linkBtn.Visible = false
-	checkBtn.Visible = false
-	discordBtn.Visible = false
-	websiteBtn.Visible = false
-	backBtn.Visible = false
-	exitBtn.Visible = true
-	exitBtn.AnchorPoint = Vector2.new(0.5, 1)
-	exitBtn.Position = UDim2.new(0.5, 0, 1, -10)
-	tweenSize(W1, H1)
-end
+toggle("Clear after execute", 0, false, function(v) UI.ClearAfterExecute = v end)
+toggle("Auto-scroll terminal", 48, true, function(v) UI.AutoScroll = v end)
 
-local function showStep2(version)
-	selectedVersion = version
-	getgenv().NEO_VERSION = version
-	titleL.Text = version == "PREMIUM" and "Premium" or "Free"
-	titleL.TextSize = 18
-	titleL.Position = UDim2.fromOffset(0, 10)
-	freeBtn.Visible = false
-	premBtn.Visible = false
-	hintL.Visible = true
-	hintL.Text = "Enter your key to continue"
-	box.Visible = true
-	box.Text = ""
-	status.Visible = true
-	setStatus("", false)
-	linkBtn.Visible = true
-	checkBtn.Visible = true
-	discordBtn.Visible = true
-	websiteBtn.Visible = true
-	backBtn.Visible = true
-	exitBtn.Visible = true
-	exitBtn.AnchorPoint = Vector2.new(1, 1)
-	exitBtn.Position = UDim2.new(1, -PAD, 1, -10)
-	tweenSize(W2, H2)
-end
+-- ===== إغلاق / تصغير =====
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	side.Visible = not minimized
+	content.Visible = not minimized
+	TweenService:Create(win, TweenInfo.new(0.2), {Size = minimized and UDim2.fromOffset(640, 40) or UDim2.fromOffset(640, 400)}):Play()
+end)
 
--- open as tiny step 1
-TweenService:Create(shell, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-	Size = UDim2.fromOffset(W1, H1),
-}):Play()
-
-local checking, linking = false, false
-
-local function cleanup()
-	for i = 1, #connections do
-		pcall(function() connections[i]:Disconnect() end)
+-- ===== الصور =====
+task.spawn(function()
+	if CONFIG.IconAsset == "" then
+		local img = remoteImage(CONFIG.IconURL, "neo_icon.png")
+		if img then icon.Image = img end
 	end
-	pcall(function() if gui then gui:Destroy() end end)
-end
-
-local function finishSuccess()
-	selectedKey = getgenv().SCRIPT_KEY
-	getgenv().NEO_KEY_OK = true
-	done = true
-	TweenService:Create(shell, TweenInfo.new(0.18), { Size = UDim2.fromOffset(0, 0) }):Play()
-	TweenService:Create(starLayer, TweenInfo.new(0.2), { BackgroundTransparency = 1 }):Play()
-end
-
-local function submit()
-	if checking or done or not selectedVersion then return end
-	checking = true
-	setStatus("Checking...", false)
-	task.spawn(function()
-		local okV, msg = verifyKey(box.Text, selectedVersion)
-		if okV then
-			local clean = string.gsub(tostring(box.Text or ""), "%s+", "")
-			if getgenv().SCRIPT_KEY ~= "KEYLESS" and #clean > 0 then
-				saveCachedKey(clean)
-			end
-			saveCachedVersion(selectedVersion)
-			setStatus("OK", false)
-			finishSuccess()
-		else
-			setStatus(msg, true)
-			local origin = shell.Position
-			for i = 1, 4 do
-				shell.Position = origin + UDim2.fromOffset((i % 2 ~= 0) and -3 or 3, 0)
-				task.wait(0.03)
-			end
-			shell.Position = origin
-		end
-		checking = false
-	end)
-end
-
-freeBtn.MouseButton1Click:Connect(function()
-	if done then return end
-	showStep2("FREE")
-end)
-premBtn.MouseButton1Click:Connect(function()
-	if done then return end
-	showStep2("PREMIUM")
-end)
-backBtn.MouseButton1Click:Connect(function()
-	if done or checking then return end
-	showStep1()
-end)
-checkBtn.MouseButton1Click:Connect(submit)
-linkBtn.MouseButton1Click:Connect(function()
-	if linking then return end
-	linking = true
-	setStatus("Getting link...", false)
-	task.spawn(function()
-		local okL, msg = copyKeyLink()
-		setStatus(msg, not okL)
-		linking = false
-	end)
-end)
-discordBtn.MouseButton1Click:Connect(function()
-	copyText(DISCORD_LINK)
-	setStatus("Discord copied", false)
-end)
-websiteBtn.MouseButton1Click:Connect(function()
-	copyText(WEBSITE_LINK)
-	setStatus("Website copied", false)
-end)
-exitBtn.MouseButton1Click:Connect(function()
-	if done then return end
-	done = true
-	selectedKey = nil
-	getgenv().SCRIPT_KEY = nil
-	getgenv().NEO_KEY_OK = false
-	getgenv().NEO_VERSION = nil
-	getgenv().UI_CLOSED = true
-	TweenService:Create(shell, TweenInfo.new(0.16), { Size = UDim2.fromOffset(0, 0) }):Play()
-	TweenService:Create(starLayer, TweenInfo.new(0.18), { BackgroundTransparency = 1 }):Play()
-end)
-box.FocusLost:Connect(function(enter)
-	if enter then submit() end
+	if CONFIG.BannerAsset == "" then
+		local img = remoteImage(CONFIG.BannerURL, "neo_banner.png")
+		if img then banner.Image = img end
+	end
 end)
 
-repeat task.wait() until done
-cleanup()
-
-if not selectedKey then
-	getgenv().UI_CLOSED = true
-	getgenv().SCRIPT_KEY = nil
-	getgenv().NEO_KEY_OK = false
-	getgenv().NEO_VERSION = nil
-	return
-end
-
-getgenv().SCRIPT_KEY = selectedKey
-getgenv().NEO_KEY_OK = true
-showToast(getgenv().NEO_VERSION == "PREMIUM" and "Premium" or "Free")
-runProtectedScript()
+selectTab("Editor")
