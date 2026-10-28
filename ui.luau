@@ -1,22 +1,22 @@
 -- ==============================================================================
--- ORC TITAN FRAMEWORK v8.0 (PURE MINIMAL MONOCHROME)
--- #000000 / #FFFFFF • NO HEAVY FRAMES • CLEAN TYPOGRAPHY
+-- ORC TITAN FRAMEWORK v8.1 (PURE MINIMAL MONOCHROME)
+-- #000000 / #FFFFFF • PRECISION TYPOGRAPHY • ZERO CLUTTER
 -- ==============================================================================
 
 -- ==========================================
--- [1] ASSET & ICON CONFIGURATION (CUSTOMIZE HERE)
+-- [1] ASSET & ICON CONFIGURATION (TREE HUB CLI REGISTRY)
 -- ==========================================
 local ASSETS = {
-    -- Sidebar dock icons (Replace with your uploaded assets or custom IDs)
-    ICON_EXECUTOR = "rbxassetid://10734950309", -- Icon 1: Terminal / Executor
-    ICON_SAVED    = "rbxassetid://10709791437", -- Icon 2: Saved Scripts
-    ICON_SEARCH   = "rbxassetid://10734883502", -- Icon 3: ScriptBlox Search
-    ICON_CONSOLE  = "rbxassetid://10734952047", -- Icon 4: Diagnostics Dual Console
-    ICON_SETTINGS = "rbxassetid://10734950020", -- Icon 5: Engine Settings
-    ICON_CLOSE    = "rbxassetid://10747384394", -- Bottom Icon: Minimize
+    -- Sidebar dock icons (Exact Tree Hub CLI assets)
+    ICON_EXECUTOR = "rbxassetid://137645011895167", -- code-2-bold
+    ICON_SAVED    = "rbxassetid://76034753816998",  -- folder-2-bold
+    ICON_SEARCH   = "rbxassetid://104777342222451", -- card-search-bold
+    ICON_CONSOLE  = "rbxassetid://70615504226457",  -- chat-square-code-bold
+    ICON_SETTINGS = "rbxassetid://79820790543002",  -- colour-tuneing-bold
+    ICON_CLOSE    = "rbxassetid://117747448917698", -- close-square-bold
     
     -- Fallback image for game thumbnails in Search
-    FALLBACK_THUMB = "rbxassetid://10734883502"
+    FALLBACK_THUMB = "rbxassetid://104777342222451"
 }
 
 -- ==========================================
@@ -61,12 +61,12 @@ local C_PANEL   = Color3.fromRGB(12, 12, 15)
 local C_CARD    = Color3.fromRGB(18, 18, 22)
 local C_BORDER  = Color3.fromRGB(34, 34, 42)
 local C_WHITE   = Color3.fromRGB(255, 255, 255)
-local C_MUTED   = Color3.fromRGB(150, 150, 160)
-local C_SUBTLE  = Color3.fromRGB(80, 80, 95)
+local C_MUTED   = Color3.fromRGB(160, 160, 170)
+local C_SUBTLE  = Color3.fromRGB(90, 90, 105)
 
-local FONT_TITLE = Enum.Font.GothamBlack
-local FONT_TEXT  = Enum.Font.GothamMedium
-local FONT_CODE  = Enum.Font.Code
+local FONT_TITLE = Enum.Font.GothamBold
+local FONT_TEXT  = Enum.Font.Gotham
+local FONT_CODE  = Enum.Font.RobotoMono
 
 -- ==========================================
 -- [4] STORAGE & CLIPBOARD
@@ -270,19 +270,19 @@ fbStroke.Thickness = 1.4
 fbStroke.Parent = floatingBubble
 
 -- ==========================================
--- [7] EXPANDED FLOATING WINDOW (75% x 88%)
+-- [7] EXPANDED FLOATING WINDOW (0.80 x 0.90)
 -- ==========================================
 local floatingWindow = Instance.new("Frame")
 floatingWindow.Name = "FloatingWindow"
-floatingWindow.Size = UDim2.new(0.75, 0, 0.88, 0)
-floatingWindow.Position = UDim2.new(0.09, 0, 0.06, 0)
+floatingWindow.Size = UDim2.new(0.80, 0, 0.90, 0)
+floatingWindow.Position = UDim2.new(0.065, 0, 0.05, 0)
 floatingWindow.BackgroundColor3 = C_PANEL
 floatingWindow.BorderSizePixel = 0
 floatingWindow.Active = true
 floatingWindow.Parent = container
 
 local fwCorner = Instance.new("UICorner")
-fwCorner.CornerRadius = UDim.new(0, 14)
+fwCorner.CornerRadius = UDim.new(0, 10)
 fwCorner.Parent = floatingWindow
 
 local fwStroke = Instance.new("UIStroke")
@@ -674,14 +674,28 @@ local function refreshSavedList()
 
     local fileList = {}
     pcall(function()
-        if listfiles then fileList = listfiles(SCRIPTS_DIR) or {} end
+        if listfiles then
+            local raw = listfiles(SCRIPTS_DIR) or {}
+            for _, p in ipairs(raw) do
+                table.insert(fileList, p)
+            end
+            -- Also check root or relative paths if listfiles returns workspace-relative
+            if #fileList == 0 then
+                local rootList = listfiles("") or {}
+                for _, p in ipairs(rootList) do
+                    if string.find(p, "^scripts/") or string.find(p, "^scripts\\") then
+                        table.insert(fileList, p)
+                    end
+                end
+            end
+        end
     end)
 
     if #fileList == 0 then
         local emptyLbl = Instance.new("TextLabel")
         emptyLbl.Size = UDim2.new(1, 0, 0, 60)
         emptyLbl.BackgroundTransparency = 1
-        emptyLbl.Text = "No scripts in /sdcard/ORC/scripts/\nClick '+ ADD SCRIPT' above to create one."
+        emptyLbl.Text = "No scripts found.\nClick '+ ADD SCRIPT' above to create one."
         emptyLbl.TextColor3 = C_MUTED
         emptyLbl.Font = FONT_CODE
         emptyLbl.TextSize = 11
@@ -689,8 +703,13 @@ local function refreshSavedList()
         return
     end
 
-    for _, filePath in ipairs(fileList) do
-        local fileName = string.gsub(filePath, "^.*/", "")
+    for _, rawPath in ipairs(fileList) do
+        -- Normalize path separators
+        local normPath = string.gsub(rawPath, "\\", "/")
+        local fileName = string.gsub(normPath, "^.*/", "")
+        -- Ensure relative path format required by sandbox
+        local relPath = string.find(normPath, "^" .. SCRIPTS_DIR) and normPath or (SCRIPTS_DIR .. "/" .. fileName)
+
         if fileName ~= "README.txt" and not string.find(fileName, "^%.") then
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, -4, 0, 48)
@@ -760,35 +779,70 @@ local function refreshSavedList()
             dbCorner.CornerRadius = UDim.new(0, 6)
             dbCorner.Parent = delBtn
 
+            local function tryReadFile()
+                if not readfile then return nil end
+                local ok, content = pcall(readfile, relPath)
+                if ok and content then return content end
+                ok, content = pcall(readfile, rawPath)
+                if ok and content then return content end
+                ok, content = pcall(readfile, fileName)
+                if ok and content then return content end
+                return nil
+            end
+
             loadBtn.MouseButton1Click:Connect(function()
-                pcall(function()
-                    if readfile then
-                        editorBox.Text = readfile(filePath)
-                        if switchTab then switchTab("Executor") end
-                        headerStatus.Text = "LOADED: " .. fileName
-                    end
-                end)
+                local content = tryReadFile()
+                if content then
+                    editorBox.Text = content
+                    if switchTab then switchTab("Executor") end
+                    headerStatus.Text = "LOADED: " .. fileName
+                else
+                    headerStatus.Text = "READ FAILED: " .. fileName
+                end
             end)
 
             runBtn.MouseButton1Click:Connect(function()
-                pcall(function()
-                    if readfile then
-                        local code = readfile(filePath)
-                        local fn = loadstring(code)
-                        if fn then task.spawn(fn) end
+                local content = tryReadFile()
+                if content then
+                    local fn, err = loadstring(content)
+                    if fn then
+                        task.spawn(fn)
                         headerStatus.Text = "RUNNING: " .. fileName
+                    else
+                        headerStatus.Text = "EXEC ERROR: " .. fileName
                     end
-                end)
+                else
+                    headerStatus.Text = "READ FAILED: " .. fileName
+                end
             end)
 
             delBtn.MouseButton1Click:Connect(function()
-                pcall(function()
-                    if delfile then
-                        delfile(filePath)
-                        card:Destroy()
-                        headerStatus.Text = "DELETED: " .. fileName
+                local deleted = false
+                if delfile then
+                    -- Attempt standard relative paths allowed by the C++ path_arg sandbox
+                    local candidates = { relPath, rawPath, SCRIPTS_DIR .. "/" .. fileName, fileName }
+                    for _, cand in ipairs(candidates) do
+                        local ok, res = pcall(delfile, cand)
+                        if ok and res ~= false then
+                            deleted = true
+                            break
+                        end
                     end
-                end)
+                end
+
+                if deleted then
+                    card:Destroy()
+                    headerStatus.Text = "DELETED: " .. fileName
+                else
+                    -- Fallback: truncate file if delfile is restricted
+                    pcall(function()
+                        if writefile then
+                            writefile(relPath, "")
+                            card:Destroy()
+                            headerStatus.Text = "CLEARED: " .. fileName
+                        end
+                    end)
+                end
             end)
         end
     end
