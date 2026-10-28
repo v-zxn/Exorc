@@ -1,13 +1,13 @@
 -- ==============================================================================
--- ORC TITAN FRAMEWORK v8.1 (PURE MINIMAL MONOCHROME)
--- #000000 / #FFFFFF • PRECISION TYPOGRAPHY • ZERO CLUTTER
+-- ORC TITAN FRAMEWORK v8.2 (MIDNIGHT DEEP BLUE & PURE BLACK)
+-- #020611 / #070e1c • HIGH-TECH CYBERPUNK • ZERO CLUTTER
 -- ==============================================================================
 
 -- ==========================================
--- [1] ASSET & ICON CONFIGURATION (TREE HUB CLI REGISTRY)
+-- [1] ASSET & ICON CONFIGURATION
 -- ==========================================
 local ASSETS = {
-    -- Sidebar dock icons (Exact Tree Hub CLI assets)
+    -- Sidebar dock icons (Tree Hub CLI Registry)
     ICON_EXECUTOR = "rbxassetid://137645011895167", -- code-2-bold
     ICON_SAVED    = "rbxassetid://76034753816998",  -- folder-2-bold
     ICON_SEARCH   = "rbxassetid://104777342222451", -- card-search-bold
@@ -15,7 +15,8 @@ local ASSETS = {
     ICON_SETTINGS = "rbxassetid://79820790543002",  -- colour-tuneing-bold
     ICON_CLOSE    = "rbxassetid://117747448917698", -- close-square-bold
     
-    -- Fallback image for game thumbnails in Search
+    -- Remote Project Logo from GitHub
+    PROJECT_LOGO  = "https://raw.githubusercontent.com/v-zxn/Exorc/main/logo.png",
     FALLBACK_THUMB = "rbxassetid://104777342222451"
 }
 
@@ -53,16 +54,18 @@ screenGui.IgnoreGuiInset = true
 screenGui.Parent = targetParent
 
 -- ==========================================
--- [3] PURE MONOCHROME PALETTE & FONTS
+-- [3] MIDNIGHT NAVY & DEEP BLUE PALETTE
 -- ==========================================
-local C_BLACK   = Color3.fromRGB(0, 0, 0)
-local C_DARK    = Color3.fromRGB(6, 6, 8)
-local C_PANEL   = Color3.fromRGB(12, 12, 15)
-local C_CARD    = Color3.fromRGB(18, 18, 22)
-local C_BORDER  = Color3.fromRGB(34, 34, 42)
-local C_WHITE   = Color3.fromRGB(255, 255, 255)
-local C_MUTED   = Color3.fromRGB(160, 160, 170)
-local C_SUBTLE  = Color3.fromRGB(90, 90, 105)
+local C_BLACK   = Color3.fromRGB(2, 4, 8)        -- Absolute deep black-blue
+local C_DARK    = Color3.fromRGB(5, 10, 20)      -- Dark navy canvas
+local C_PANEL   = Color3.fromRGB(8, 14, 28)      -- Rich midnight panel
+local C_CARD    = Color3.fromRGB(13, 22, 42)     -- Elevated navy card
+local C_BORDER  = Color3.fromRGB(25, 45, 80)     -- Subtle electric border
+local C_WHITE   = Color3.fromRGB(240, 245, 255)  -- Pure crisp white-blue
+local C_MUTED   = Color3.fromRGB(130, 150, 180)  -- Muted slate blue
+local C_SUBTLE  = Color3.fromRGB(70, 90, 120)    -- Deep slate
+local C_BLUE    = Color3.fromRGB(0, 140, 255)    -- High-tech neon cyan-blue
+local C_BLUE_BG = Color3.fromRGB(10, 30, 65)     -- Glow tint
 
 local FONT_TITLE = Enum.Font.GothamBold
 local FONT_TEXT  = Enum.Font.Gotham
@@ -138,36 +141,40 @@ backdropGradient.Rotation = 45
 backdropGradient.Parent = fullBackdrop
 
 -- ==========================================
--- [6] RIGHT DOCK: COMPACT, SPACIOUS & NO CLUTTER
+-- [6] FLOATING CYBERPUNK DOCK (TRANSPARENT, SPACIOUS & GLOW ACCENTS)
 -- ==========================================
 local rightDock = Instance.new("Frame")
 rightDock.Name = "RightDock"
-rightDock.Size = UDim2.new(0, 52, 1, 0)
-rightDock.Position = UDim2.new(1, -52, 0, 0)
+rightDock.Size = UDim2.new(0, 58, 1, -24)
+rightDock.Position = UDim2.new(1, -66, 0, 12)
 rightDock.BackgroundColor3 = C_PANEL
+rightDock.BackgroundTransparency = 0.15
 rightDock.BorderSizePixel = 0
 rightDock.Active = true
 rightDock.Parent = container
 
-local dockBorder = Instance.new("Frame")
-dockBorder.Size = UDim2.new(0, 1, 1, 0)
-dockBorder.BackgroundColor3 = C_BORDER
-dockBorder.BorderSizePixel = 0
-dockBorder.Parent = rightDock
+local rdCorner = Instance.new("UICorner")
+rdCorner.CornerRadius = UDim.new(0, 16)
+rdCorner.Parent = rightDock
+
+local rdStroke = Instance.new("UIStroke")
+rdStroke.Color = C_BORDER
+rdStroke.Thickness = 1.2
+rdStroke.Parent = rightDock
 
 local dockButtonsContainer = Instance.new("Frame")
 dockButtonsContainer.Name = "DockButtons"
 dockButtonsContainer.Size = UDim2.new(1, 0, 1, -80)
-dockButtonsContainer.Position = UDim2.new(0, 0, 0, 16)
+dockButtonsContainer.Position = UDim2.new(0, 0, 0, 12)
 dockButtonsContainer.BackgroundTransparency = 1
 dockButtonsContainer.Parent = rightDock
 
 -- Sliding Active Pill
 local activePill = Instance.new("Frame")
 activePill.Name = "ActivePill"
-activePill.Size = UDim2.new(0, 3, 0, 32)
-activePill.Position = UDim2.new(1, -3, 0, 4)
-activePill.BackgroundColor3 = C_WHITE
+activePill.Size = UDim2.new(0, 3, 0, 26)
+activePill.Position = UDim2.new(0, 3, 0, 10)
+activePill.BackgroundColor3 = C_BLUE
 activePill.BorderSizePixel = 0
 activePill.Parent = dockButtonsContainer
 
@@ -180,9 +187,10 @@ local dockButtons = {}
 local function makeDockButton(name, iconAsset, yOffset)
     local btn = Instance.new("ImageButton")
     btn.Name = "Btn_" .. name
-    btn.Size = UDim2.new(0, 38, 0, 38)
-    btn.Position = UDim2.new(0.5, -19, 0, yOffset)
+    btn.Size = UDim2.new(0, 40, 0, 40)
+    btn.Position = UDim2.new(0.5, -20, 0, yOffset)
     btn.BackgroundColor3 = C_CARD
+    btn.BackgroundTransparency = 0.2
     btn.Image = iconAsset
     btn.ImageColor3 = C_MUTED
     btn.ScaleType = Enum.ScaleType.Fit
@@ -190,7 +198,7 @@ local function makeDockButton(name, iconAsset, yOffset)
     btn.Parent = dockButtonsContainer
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = btn
 
     local stroke = Instance.new("UIStroke")
@@ -209,19 +217,20 @@ local function makeDockButton(name, iconAsset, yOffset)
     return btn
 end
 
--- 5 Buttons with comfortable vertical spacing (46px interval)
-local btnExecutor = makeDockButton("Executor", ASSETS.ICON_EXECUTOR, 4)
-local btnSaved    = makeDockButton("Saved", ASSETS.ICON_SAVED, 50)
-local btnSearch   = makeDockButton("Search", ASSETS.ICON_SEARCH, 96)
-local btnConsole  = makeDockButton("Console", ASSETS.ICON_CONSOLE, 142)
-local btnSettings = makeDockButton("Settings", ASSETS.ICON_SETTINGS, 188)
+-- 5 Buttons with comfortable vertical spacing (48px interval)
+local btnExecutor = makeDockButton("Executor", ASSETS.ICON_EXECUTOR, 6)
+local btnSaved    = makeDockButton("Saved", ASSETS.ICON_SAVED, 54)
+local btnSearch   = makeDockButton("Search", ASSETS.ICON_SEARCH, 102)
+local btnConsole  = makeDockButton("Console", ASSETS.ICON_CONSOLE, 150)
+local btnSettings = makeDockButton("Settings", ASSETS.ICON_SETTINGS, 198)
 
--- Close Button (Well separated at bottom)
+-- Close Button (Anchored cleanly at bottom of pill dock)
 local btnClose = Instance.new("ImageButton")
 btnClose.Name = "Btn_Close"
-btnClose.Size = UDim2.new(0, 38, 0, 38)
-btnClose.Position = UDim2.new(0.5, -19, 1, -48)
+btnClose.Size = UDim2.new(0, 40, 0, 40)
+btnClose.Position = UDim2.new(0.5, -20, 1, -48)
 btnClose.BackgroundColor3 = C_CARD
+btnClose.BackgroundTransparency = 0.2
 btnClose.Image = ASSETS.ICON_CLOSE
 btnClose.ImageColor3 = C_WHITE
 btnClose.ScaleType = Enum.ScaleType.Fit
@@ -229,7 +238,7 @@ btnClose.AutoButtonColor = false
 btnClose.Parent = rightDock
 
 local bcCorner = Instance.new("UICorner")
-bcCorner.CornerRadius = UDim.new(0, 8)
+bcCorner.CornerRadius = UDim.new(0, 10)
 bcCorner.Parent = btnClose
 
 local bcStroke = Instance.new("UIStroke")
@@ -245,16 +254,15 @@ bcPad.PaddingRight = UDim.new(0, 10)
 bcPad.Parent = btnClose
 dockButtons["Close"] = btnClose
 
--- Floating Restore Bubble
-local floatingBubble = Instance.new("TextButton")
+-- Floating Restore Bubble with Custom Project Logo
+local floatingBubble = Instance.new("ImageButton")
 floatingBubble.Name = "ORC_FloatingBubble"
-floatingBubble.Size = UDim2.new(0, 44, 0, 44)
-floatingBubble.Position = UDim2.new(1, -56, 0.45, 0)
-floatingBubble.BackgroundColor3 = C_BLACK
-floatingBubble.TextColor3 = C_WHITE
-floatingBubble.Text = "ORC"
-floatingBubble.Font = FONT_TITLE
-floatingBubble.TextSize = 13
+floatingBubble.Size = UDim2.new(0, 48, 0, 48)
+floatingBubble.Position = UDim2.new(1, -64, 0.45, 0)
+floatingBubble.BackgroundColor3 = C_DARK
+floatingBubble.BackgroundTransparency = 0.1
+floatingBubble.Image = ""
+floatingBubble.ScaleType = Enum.ScaleType.Fit
 floatingBubble.Visible = false
 floatingBubble.Active = true
 floatingBubble.Draggable = true
@@ -265,9 +273,46 @@ fbCorner.CornerRadius = UDim.new(1, 0)
 fbCorner.Parent = floatingBubble
 
 local fbStroke = Instance.new("UIStroke")
-fbStroke.Color = C_WHITE
-fbStroke.Thickness = 1.4
+fbStroke.Color = C_BLUE
+fbStroke.Thickness = 1.8
 fbStroke.Parent = floatingBubble
+
+local fbPad = Instance.new("UIPadding")
+fbPad.PaddingTop = UDim.new(0, 6)
+fbPad.PaddingBottom = UDim.new(0, 6)
+fbPad.PaddingLeft = UDim.new(0, 6)
+fbPad.PaddingRight = UDim.new(0, 6)
+fbPad.Parent = floatingBubble
+
+local fbFallbackText = Instance.new("TextLabel")
+fbFallbackText.Size = UDim2.new(1, 0, 1, 0)
+fbFallbackText.BackgroundTransparency = 1
+fbFallbackText.Text = "ORC"
+fbFallbackText.TextColor3 = C_WHITE
+fbFallbackText.Font = FONT_TITLE
+fbFallbackText.TextSize = 13
+fbFallbackText.Parent = floatingBubble
+
+task.spawn(function()
+    local cachedLogoPath = "workspace/enforx_icon.png"
+    pcall(function()
+        if isfile and isfile(cachedLogoPath) and getcustomasset then
+            floatingBubble.Image = getcustomasset(cachedLogoPath)
+            fbFallbackText.Visible = false
+        else
+            -- Download logo from GitHub
+            local logoData = nil
+            if game.HttpGet then
+                logoData = game:HttpGet(ASSETS.PROJECT_LOGO, true)
+            end
+            if logoData and writefile and getcustomasset then
+                writefile(cachedLogoPath, logoData)
+                floatingBubble.Image = getcustomasset(cachedLogoPath)
+                fbFallbackText.Visible = false
+            end
+        end
+    end)
+end)
 
 -- ==========================================
 -- [7] EXPANDED FLOATING WINDOW (0.80 x 0.90)
@@ -568,11 +613,27 @@ asmClose.TextSize = 13
 asmClose.ZIndex = 202
 asmClose.Parent = addScriptModal
 
--- Field 1: Script Name
+-- Field 1: Script Name (with prominent stylish border)
+local inputNameContainer = Instance.new("Frame")
+inputNameContainer.Size = UDim2.new(1, -28, 0, 36)
+inputNameContainer.Position = UDim2.new(0, 14, 0, 44)
+inputNameContainer.BackgroundColor3 = C_BLACK
+inputNameContainer.BorderSizePixel = 0
+inputNameContainer.ZIndex = 201
+inputNameContainer.Parent = addScriptModal
+
+local incCorner = Instance.new("UICorner")
+incCorner.CornerRadius = UDim.new(0, 8)
+incCorner.Parent = inputNameContainer
+
+local incStroke = Instance.new("UIStroke")
+incStroke.Color = C_BLUE
+incStroke.Thickness = 1.6
+incStroke.Parent = inputNameContainer
+
 local inputScriptName = Instance.new("TextBox")
-inputScriptName.Size = UDim2.new(1, -28, 0, 34)
-inputScriptName.Position = UDim2.new(0, 14, 0, 44)
-inputScriptName.BackgroundColor3 = C_BLACK
+inputScriptName.Size = UDim2.new(1, 0, 1, 0)
+inputScriptName.BackgroundTransparency = 1
 inputScriptName.TextColor3 = C_WHITE
 inputScriptName.PlaceholderText = "Enter script name (e.g. MySuperFarm)..."
 inputScriptName.PlaceholderColor3 = C_SUBTLE
@@ -580,21 +641,13 @@ inputScriptName.Font = FONT_CODE
 inputScriptName.TextSize = 12
 inputScriptName.ClearTextOnFocus = false
 inputScriptName.Text = ""
-inputScriptName.ZIndex = 201
-inputScriptName.Parent = addScriptModal
-
-local isnCorner = Instance.new("UICorner")
-isnCorner.CornerRadius = UDim.new(0, 8)
-isnCorner.Parent = inputScriptName
+inputScriptName.ZIndex = 202
+inputScriptName.Parent = inputNameContainer
 
 local isnPad = Instance.new("UIPadding")
 isnPad.PaddingLeft = UDim.new(0, 10)
+isnPad.PaddingRight = UDim.new(0, 10)
 isnPad.Parent = inputScriptName
-
-local isnStroke = Instance.new("UIStroke")
-isnStroke.Color = C_BORDER
-isnStroke.Thickness = 1
-isnStroke.Parent = inputScriptName
 
 -- Field 2: Script Code
 local inputCodeScroll = Instance.new("ScrollingFrame")
@@ -1269,9 +1322,10 @@ local function makeConsolePane(title)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 3
-    scroll.ScrollBarImageColor3 = C_WHITE
+    scroll.ScrollBarImageColor3 = C_BLUE
     scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    scroll.ScrollingEnabled = false
+    scroll.ScrollingEnabled = true
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.Parent = pane
 
     local sLayout = Instance.new("UIListLayout")
@@ -1282,8 +1336,8 @@ local function makeConsolePane(title)
     return scroll
 end
 
-local orcPane = makeConsolePane("ORC RUNTIME (ERRORS ONLY)")
-local rbxPane = makeConsolePane("ROBLOX ENGINE (ALL OUTPUTS)")
+local orcPane = makeConsolePane("ORC RUNTIME")
+local rbxPane = makeConsolePane("ROBLOX CONSOLE")
 
 -- Bottom Unified Clear Bar
 local consoleBottomBar = Instance.new("Frame")
@@ -1428,7 +1482,7 @@ addLogEntry(orcPane, "ORC Kernel active.", "INIT")
 addLogEntry(rbxPane, "Roblox Engine Console active.", "INIT")
 
 -- ==========================================
--- [12] TAB 5: ADVANCED EXECUTOR SETTINGS
+-- [12] TAB 5: ADVANCED SYSTEM & EXECUTOR SETTINGS
 -- ==========================================
 local pageSettings = Instance.new("ScrollingFrame")
 pageSettings.Name = "Page_Settings"
@@ -1436,20 +1490,33 @@ pageSettings.Size = UDim2.new(1, 0, 1, 0)
 pageSettings.BackgroundTransparency = 1
 pageSettings.BorderSizePixel = 0
 pageSettings.ScrollBarThickness = 4
-pageSettings.ScrollBarImageColor3 = C_WHITE
+pageSettings.ScrollBarImageColor3 = C_BLUE
 pageSettings.AutomaticCanvasSize = Enum.AutomaticSize.Y
 pageSettings.Visible = false
 pageSettings.Parent = viewport
 pages["Settings"] = pageSettings
 
 local settsLayout = Instance.new("UIListLayout")
-settsLayout.Padding = UDim.new(0, 8)
+settsLayout.Padding = UDim.new(0, 10)
 settsLayout.Parent = pageSettings
 
-local function makeSettingToggle(title, desc, defaultState, callback)
+local function makeSectionHeader(title)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 24)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = ":: " .. string.upper(title)
+    lbl.TextColor3 = C_BLUE
+    lbl.Font = FONT_TITLE
+    lbl.TextSize = 11
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = pageSettings
+end
+
+local function makeSettingCard(title, desc, rightElement)
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, 48)
-    card.BackgroundColor3 = C_BLACK
+    card.Size = UDim2.new(1, -4, 0, 52)
+    card.BackgroundColor3 = C_CARD
+    card.BackgroundTransparency = 0.2
     card.Parent = pageSettings
 
     local cc = Instance.new("UICorner")
@@ -1462,8 +1529,8 @@ local function makeSettingToggle(title, desc, defaultState, callback)
     cs.Parent = card
 
     local tLbl = Instance.new("TextLabel")
-    tLbl.Size = UDim2.new(0.7, 0, 0, 20)
-    tLbl.Position = UDim2.new(0, 10, 0, 5)
+    tLbl.Size = UDim2.new(0.60, 0, 0, 20)
+    tLbl.Position = UDim2.new(0, 12, 0, 6)
     tLbl.BackgroundTransparency = 1
     tLbl.Text = title
     tLbl.TextColor3 = C_WHITE
@@ -1473,8 +1540,8 @@ local function makeSettingToggle(title, desc, defaultState, callback)
     tLbl.Parent = card
 
     local dLbl = Instance.new("TextLabel")
-    dLbl.Size = UDim2.new(0.7, 0, 0, 16)
-    dLbl.Position = UDim2.new(0, 10, 0, 25)
+    dLbl.Size = UDim2.new(0.60, 0, 0, 16)
+    dLbl.Position = UDim2.new(0, 12, 0, 27)
     dLbl.BackgroundTransparency = 1
     dLbl.Text = desc
     dLbl.TextColor3 = C_MUTED
@@ -1483,78 +1550,54 @@ local function makeSettingToggle(title, desc, defaultState, callback)
     dLbl.TextXAlignment = Enum.TextXAlignment.Left
     dLbl.Parent = card
 
+    if rightElement then
+        rightElement.Position = UDim2.new(1, -rightElement.Size.X.Offset - 12, 0.5, -rightElement.Size.Y.Offset / 2)
+        rightElement.Parent = card
+    end
+
+    return card
+end
+
+local function makeSettingToggle(title, desc, defaultState, callback)
     local tglBtn = Instance.new("TextButton")
     tglBtn.Size = UDim2.new(0, 64, 0, 28)
-    tglBtn.Position = UDim2.new(1, -72, 0.5, -14)
-    tglBtn.BackgroundColor3 = defaultState and C_WHITE or C_CARD
-    tglBtn.TextColor3 = defaultState and C_BLACK or C_MUTED
+    tglBtn.BackgroundColor3 = defaultState and C_BLUE or C_DARK
+    tglBtn.TextColor3 = C_WHITE
     tglBtn.Font = FONT_TITLE
     tglBtn.TextSize = 11
     tglBtn.Text = defaultState and "ON" or "OFF"
-    tglBtn.Parent = card
 
     local tbCorner = Instance.new("UICorner")
     tbCorner.CornerRadius = UDim.new(0, 6)
     tbCorner.Parent = tglBtn
 
+    local tbStroke = Instance.new("UIStroke")
+    tbStroke.Color = defaultState and C_BLUE or C_BORDER
+    tbStroke.Thickness = 1
+    tbStroke.Parent = tglBtn
+
     local state = defaultState
     tglBtn.MouseButton1Click:Connect(function()
         state = not state
-        tglBtn.BackgroundColor3 = state and C_WHITE or C_CARD
-        tglBtn.TextColor3 = state and C_BLACK or C_MUTED
+        tglBtn.BackgroundColor3 = state and C_BLUE or C_DARK
+        tbStroke.Color = state and C_BLUE or C_BORDER
         tglBtn.Text = state and "ON" or "OFF"
         callback(state)
     end)
+
+    makeSettingCard(title, desc, tglBtn)
 end
 
 local function makeSettingInput(title, desc, placeholder, onApplied)
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, 48)
-    card.BackgroundColor3 = C_BLACK
-    card.Parent = pageSettings
-
-    local cc = Instance.new("UICorner")
-    cc.CornerRadius = UDim.new(0, 8)
-    cc.Parent = card
-
-    local cs = Instance.new("UIStroke")
-    cs.Color = C_BORDER
-    cs.Thickness = 1
-    cs.Parent = card
-
-    local tLbl = Instance.new("TextLabel")
-    tLbl.Size = UDim2.new(0.55, 0, 0, 20)
-    tLbl.Position = UDim2.new(0, 10, 0, 5)
-    tLbl.BackgroundTransparency = 1
-    tLbl.Text = title
-    tLbl.TextColor3 = C_WHITE
-    tLbl.Font = FONT_TITLE
-    tLbl.TextSize = 12
-    tLbl.TextXAlignment = Enum.TextXAlignment.Left
-    tLbl.Parent = card
-
-    local dLbl = Instance.new("TextLabel")
-    dLbl.Size = UDim2.new(0.55, 0, 0, 16)
-    dLbl.Position = UDim2.new(0, 10, 0, 25)
-    dLbl.BackgroundTransparency = 1
-    dLbl.Text = desc
-    dLbl.TextColor3 = C_MUTED
-    dLbl.Font = FONT_CODE
-    dLbl.TextSize = 10
-    dLbl.TextXAlignment = Enum.TextXAlignment.Left
-    dLbl.Parent = card
-
     local inBox = Instance.new("TextBox")
-    inBox.Size = UDim2.new(0.38, 0, 0, 28)
-    inBox.Position = UDim2.new(0.60, 0, 0.5, -14)
-    inBox.BackgroundColor3 = C_CARD
+    inBox.Size = UDim2.new(0, 130, 0, 30)
+    inBox.BackgroundColor3 = C_DARK
     inBox.TextColor3 = C_WHITE
     inBox.PlaceholderText = placeholder
     inBox.PlaceholderColor3 = C_SUBTLE
     inBox.Font = FONT_CODE
     inBox.TextSize = 11
     inBox.ClearTextOnFocus = false
-    inBox.Parent = card
 
     local ibCorner = Instance.new("UICorner")
     ibCorner.CornerRadius = UDim.new(0, 6)
@@ -1570,18 +1613,78 @@ local function makeSettingInput(title, desc, placeholder, onApplied)
             onApplied(inBox.Text)
         end
     end)
+
+    makeSettingCard(title, desc, inBox)
 end
 
--- Settings Controls
-makeSettingInput("Spoof Title", "Override header window text", "Custom title...", function(val)
-    headerTitle.Text = string.upper(val)
+local function makeSettingAction(title, desc, btnText, onTrigger)
+    local actBtn = Instance.new("TextButton")
+    actBtn.Size = UDim2.new(0, 90, 0, 28)
+    actBtn.BackgroundColor3 = C_BLUE_BG
+    actBtn.TextColor3 = C_BLUE
+    actBtn.Font = FONT_TITLE
+    actBtn.TextSize = 10
+    actBtn.Text = btnText
+
+    local acCorner = Instance.new("UICorner")
+    acCorner.CornerRadius = UDim.new(0, 6)
+    acCorner.Parent = actBtn
+
+    local acStroke = Instance.new("UIStroke")
+    acStroke.Color = C_BLUE
+    acStroke.Thickness = 1
+    acStroke.Parent = actBtn
+
+    actBtn.MouseButton1Click:Connect(onTrigger)
+    makeSettingCard(title, desc, actBtn)
+end
+
+-- ==========================================
+-- SETTINGS SECTIONS: APP & SYSTEM CONTROLS
+-- ==========================================
+makeSectionHeader("Application & Appearance")
+
+makeSettingInput("Floating Logo Size", "Set bubble size (e.g. 40, 52, 64)", "Default: 48", function(val)
+    local num = tonumber(val)
+    if num and num >= 30 and num <= 100 then
+        floatingBubble.Size = UDim2.new(0, num, 0, num)
+        headerStatus.Text = "BUBBLE RESIZED: " .. tostring(num) .. "px"
+    end
 end)
 
-makeSettingInput("Floating Bubble Text", "Change text on minimized bubble", "Text...", function(val)
-    floatingBubble.Text = val
+makeSettingInput("Custom Logo URL", "Fetch external icon to floating bubble", "PNG URL...", function(url)
+    task.spawn(function()
+        pcall(function()
+            local imgData = nil
+            if game.HttpGet then imgData = game:HttpGet(url, true) end
+            if imgData and writefile and getcustomasset then
+                writefile("workspace/custom_icon.png", imgData)
+                floatingBubble.Image = getcustomasset("workspace/custom_icon.png")
+                fbFallbackText.Visible = false
+                headerStatus.Text = "LOGO UPDATED"
+            end
+        end)
+    end)
 end)
 
-makeSettingToggle("Anti-AFK Protection", "Prevent 20min inactivity kick", true, function(enabled)
+makeSettingInput("Header App Name", "Override UI identity title", "Custom Title...", function(name)
+    headerTitle.Text = string.upper(name)
+    headerStatus.Text = "TITLE UPDATED"
+end)
+
+makeSectionHeader("Engine & Sandbox Automation")
+
+makeSettingToggle("Auto-Save on Execute", "Save running scripts to workspace automatically", true, function(enabled)
+    getgenv().ORC_AutoSave = enabled
+end)
+
+makeSettingToggle("FPS Unlocker (240 FPS)", "Bypass 60 FPS mobile refresh limits", true, function(enabled)
+    pcall(function()
+        if setfpscap then setfpscap(enabled and 240 or 60) end
+    end)
+end)
+
+makeSettingToggle("Anti-Idle Inactivity Guard", "Bypass 20-minute server disconnect timer", true, function(enabled)
     if enabled then
         player.Idled:Connect(function()
             VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
@@ -1591,62 +1694,21 @@ makeSettingToggle("Anti-AFK Protection", "Prevent 20min inactivity kick", true, 
     end
 end)
 
-makeSettingToggle("FPS Unlocker (240 FPS)", "Bypass 60 FPS mobile limit", true, function(enabled)
+makeSectionHeader("Workspace & Storage Management")
+
+makeSettingAction("Purge Logs Cache", "Clear all diagnostics from /sdcard/ORC/logs", "PURGE", function()
     pcall(function()
-        if setfpscap then setfpscap(enabled and 240 or 60) end
+        if delfolder and makefolder then
+            delfolder("logs")
+            makefolder("logs")
+            headerStatus.Text = "LOGS PURGED"
+        end
     end)
 end)
 
-local speedConn = nil
-makeSettingToggle("Speed Hack (WalkSpeed 50)", "Constant movement speed modifier", false, function(enabled)
-    if speedConn then speedConn:Disconnect() speedConn = nil end
-    if enabled then
-        speedConn = RunService.Stepped:Connect(function()
-            pcall(function()
-                if player.Character and player.Character:FindFirstChild("Humanoid") then
-                    player.Character.Humanoid.WalkSpeed = 50
-                end
-            end)
-        end)
-    else
-        pcall(function()
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.WalkSpeed = 16
-            end
-        end)
-    end
-end)
-
-local infJumpConn = nil
-makeSettingToggle("Infinite Jump", "Jump infinitely in air", false, function(enabled)
-    if infJumpConn then infJumpConn:Disconnect() infJumpConn = nil end
-    if enabled then
-        infJumpConn = UserInputService.JumpRequest:Connect(function()
-            pcall(function()
-                if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-                    player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-                end
-            end)
-        end)
-    end
-end)
-
-local noclipConn = nil
-makeSettingToggle("Noclip Collision Ghost", "Walk through map barriers", false, function(enabled)
-    if noclipConn then noclipConn:Disconnect() noclipConn = nil end
-    if enabled then
-        noclipConn = RunService.Stepped:Connect(function()
-            pcall(function()
-                if player.Character then
-                    for _, part in ipairs(player.Character:GetDescendants()) do
-                        if part:IsA("BasePart") and part.CanCollide then
-                            part.CanCollide = false
-                        end
-                    end
-                end
-            end)
-        end)
-    end
+makeSettingAction("Re-index Storage", "Scan & refresh all workspace directory trees", "REINDEX", function()
+    refreshSavedList()
+    headerStatus.Text = "STORAGE RE-INDEXED"
 end)
 
 -- ==========================================
@@ -1668,13 +1730,13 @@ function switchTab(tabName)
     local targetBtn = dockButtons[tabName]
     if targetBtn then
         TweenService:Create(activePill, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -3, 0, targetBtn.Position.Y.Offset + 3)
+            Position = UDim2.new(0, 3, 0, targetBtn.Position.Y.Offset + 7)
         }):Play()
 
         for name, btn in pairs(dockButtons) do
             if name ~= "Close" then
                 if name == tabName then
-                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_WHITE, ImageColor3 = C_BLACK }):Play()
+                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_BLUE, ImageColor3 = C_WHITE }):Play()
                 else
                     TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_CARD, ImageColor3 = C_MUTED }):Play()
                 end
@@ -1726,8 +1788,8 @@ btnSettings.MouseButton1Click:Connect(function() switchTab("Settings") end)
 task.defer(function()
     pages["Executor"].Visible = true
     if dockButtons["Executor"] then
-        dockButtons["Executor"].BackgroundColor3 = C_WHITE
-        dockButtons["Executor"].ImageColor3 = C_BLACK
+        dockButtons["Executor"].BackgroundColor3 = C_BLUE
+        dockButtons["Executor"].ImageColor3 = C_WHITE
     end
 end)
 
