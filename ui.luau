@@ -29,14 +29,13 @@ screenGui.IgnoreGuiInset = true
 screenGui.Parent = targetParent
 
 local C_BLACK = Color3.fromRGB(0, 0, 0)
-local C_DARK = Color3.fromRGB(6, 6, 8)
-local C_PANEL = Color3.fromRGB(10, 10, 12)
-local C_CARD = Color3.fromRGB(16, 16, 20)
-local C_CARD_HOVER = Color3.fromRGB(24, 24, 30)
-local C_BORDER = Color3.fromRGB(34, 34, 40)
+local C_DARK = Color3.fromRGB(10, 10, 14)
+local C_PANEL = Color3.fromRGB(15, 15, 20)
+local C_CARD = Color3.fromRGB(22, 22, 28)
+local C_BORDER = Color3.fromRGB(42, 42, 52)
 local C_WHITE = Color3.fromRGB(255, 255, 255)
-local C_MUTED = Color3.fromRGB(150, 150, 160)
-local C_SUBTLE = Color3.fromRGB(80, 80, 90)
+local C_MUTED = Color3.fromRGB(160, 160, 175)
+local C_SUBTLE = Color3.fromRGB(90, 90, 105)
 
 local SCRIPTS_DIR = "scripts"
 local WORKSPACE_DIR = "workspace"
@@ -44,10 +43,6 @@ local AUTOEXEC_DIR = "autoexec"
 local SETTINGS_DIR = "settings"
 local LOGS_DIR = "logs"
 local CLIPBOARD_FILE = "workspace/clipboard.txt"
-local IPC_AUTH_TOKEN_FILE = "settings/.ipc_token.bin"
-local IPC_COMMAND_INBOX = "workspace/.orc_cmd_inbox.json"
-
-local sessionAuthToken = ""
 
 local function verifyAndRestoreStorage()
     pcall(function()
@@ -57,14 +52,6 @@ local function verifyAndRestoreStorage()
             makefolder(AUTOEXEC_DIR)
             makefolder(SETTINGS_DIR)
             makefolder(LOGS_DIR)
-        end
-        if isfile and isfile(IPC_AUTH_TOKEN_FILE) and readfile then
-            sessionAuthToken = readfile(IPC_AUTH_TOKEN_FILE)
-        else
-            sessionAuthToken = string.format("ORC-%08x-%08x", os.time(), math.random(0x10000000, 0x7FFFFFFF))
-            if writefile then
-                writefile(IPC_AUTH_TOKEN_FILE, sessionAuthToken)
-            end
         end
     end)
 end
@@ -98,34 +85,42 @@ local function writeSystemClipboard(text)
     end)
 end
 
+local container = Instance.new("Frame")
+container.Name = "Container"
+container.Size = UDim2.new(1, 0, 1, 0)
+container.Position = UDim2.new(0, 0, 0, 0)
+container.BackgroundTransparency = 1
+container.Parent = screenGui
+
 local fullBackdrop = Instance.new("TextButton")
 fullBackdrop.Name = "FullBackdrop"
 fullBackdrop.Size = UDim2.new(1, 0, 1, 0)
 fullBackdrop.Position = UDim2.new(0, 0, 0, 0)
 fullBackdrop.BackgroundColor3 = C_BLACK
-fullBackdrop.BackgroundTransparency = 0.35
+fullBackdrop.BackgroundTransparency = 0.40
 fullBackdrop.AutoButtonColor = false
 fullBackdrop.Text = ""
-fullBackdrop.Active = true
+fullBackdrop.Active = false
 fullBackdrop.BorderSizePixel = 0
-fullBackdrop.Parent = screenGui
+fullBackdrop.Parent = container
 
 local backdropGradient = Instance.new("UIGradient")
 backdropGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(4, 4, 6)),
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(6, 6, 9)),
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(8, 8, 12))
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(12, 12, 16))
 })
 backdropGradient.Rotation = 45
 backdropGradient.Parent = fullBackdrop
 
 local rightDock = Instance.new("Frame")
 rightDock.Name = "RightDock"
-rightDock.Size = UDim2.new(0, 56, 1, 0)
-rightDock.Position = UDim2.new(1, -56, 0, 0)
-rightDock.BackgroundColor3 = C_PANEL
+rightDock.Size = UDim2.new(0, 54, 1, 0)
+rightDock.Position = UDim2.new(1, -54, 0, 0)
+rightDock.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
 rightDock.BorderSizePixel = 0
-rightDock.Parent = fullBackdrop
+rightDock.Active = true
+rightDock.Parent = container
 
 local dockLeftBorder = Instance.new("Frame")
 dockLeftBorder.Size = UDim2.new(0, 1, 1, 0)
@@ -151,8 +146,8 @@ logoStroke.Thickness = 1
 logoStroke.Parent = logoFrame
 
 local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.new(1, -4, 1, -4)
-logoImage.Position = UDim2.new(0, 2, 0, 2)
+logoImage.Size = UDim2.new(1, -6, 1, -6)
+logoImage.Position = UDim2.new(0, 3, 0, 3)
 logoImage.BackgroundTransparency = 1
 logoImage.Image = "https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/logo.png"
 logoImage.ScaleType = Enum.ScaleType.Fit
@@ -164,7 +159,7 @@ logoFallback.BackgroundTransparency = 1
 logoFallback.Text = "ORC"
 logoFallback.TextColor3 = C_WHITE
 logoFallback.Font = Enum.Font.GothamBold
-logoFallback.TextSize = 12
+logoFallback.TextSize = 13
 logoFallback.Parent = logoFrame
 
 logoImage.Changed:Connect(function()
@@ -194,85 +189,46 @@ pillCorner.Parent = activePill
 
 local dockButtons = {}
 
-local function makeDockButton(name, iconAsset, yOffset)
-    local btn = Instance.new("ImageButton")
+local function makeDockButton(name, glyph, yOffset)
+    local btn = Instance.new("TextButton")
     btn.Name = "Btn_" .. name
-    btn.Size = UDim2.new(0, 40, 0, 40)
-    btn.Position = UDim2.new(0.5, -20, 0, yOffset)
-    btn.BackgroundColor3 = C_CARD
-    btn.Image = iconAsset
-    btn.ImageColor3 = C_MUTED
-    btn.ScaleType = Enum.ScaleType.Fit
+    btn.Size = UDim2.new(0, 42, 0, 42)
+    btn.Position = UDim2.new(0.5, -21, 0, yOffset)
+    btn.BackgroundTransparency = 1
+    btn.Text = glyph
+    btn.TextColor3 = C_MUTED
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 20
     btn.AutoButtonColor = false
     btn.Parent = dockButtonsContainer
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = btn
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = C_BORDER
-    stroke.Thickness = 1
-    stroke.Parent = btn
-
-    local pad = Instance.new("UIPadding")
-    pad.PaddingTop = UDim.new(0, 9)
-    pad.PaddingBottom = UDim.new(0, 9)
-    pad.PaddingLeft = UDim.new(0, 9)
-    pad.PaddingRight = UDim.new(0, 9)
-    pad.Parent = btn
 
     dockButtons[name] = btn
     return btn
 end
 
-local ICONS = {
-    Executor = "rbxassetid://10734950309",
-    Saved = "rbxassetid://10709791437",
-    Search = "rbxassetid://10734883502",
-    Console = "rbxassetid://10734952047",
-    Utils = "rbxassetid://10734953966",
-    Close = "rbxassetid://10747384394"
-}
+local btnExecutor = makeDockButton("Executor", ">_", 4)
+local btnSaved = makeDockButton("Saved", "★", 52)
+local btnSearch = makeDockButton("Search", "⌕", 100)
+local btnConsole = makeDockButton("Console", "≡", 148)
+local btnUtils = makeDockButton("Utils", "⚡", 196)
 
-local btnExecutor = makeDockButton("Executor", ICONS.Executor, 4)
-local btnSaved = makeDockButton("Saved", ICONS.Saved, 52)
-local btnSearch = makeDockButton("Search", ICONS.Search, 100)
-local btnConsole = makeDockButton("Console", ICONS.Console, 148)
-local btnUtils = makeDockButton("Utils", ICONS.Utils, 196)
-
-local btnClose = Instance.new("ImageButton")
+local btnClose = Instance.new("TextButton")
 btnClose.Name = "Btn_Close"
-btnClose.Size = UDim2.new(0, 40, 0, 40)
-btnClose.Position = UDim2.new(0.5, -20, 1, -48)
-btnClose.BackgroundColor3 = C_CARD
-btnClose.Image = ICONS.Close
-btnClose.ImageColor3 = C_WHITE
-btnClose.ScaleType = Enum.ScaleType.Fit
+btnClose.Size = UDim2.new(0, 42, 0, 42)
+btnClose.Position = UDim2.new(0.5, -21, 1, -48)
+btnClose.BackgroundTransparency = 1
+btnClose.Text = "✕"
+btnClose.TextColor3 = C_WHITE
+btnClose.Font = Enum.Font.GothamBold
+btnClose.TextSize = 18
 btnClose.AutoButtonColor = false
 btnClose.Parent = rightDock
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 10)
-closeCorner.Parent = btnClose
-
-local closeStroke = Instance.new("UIStroke")
-closeStroke.Color = C_BORDER
-closeStroke.Thickness = 1
-closeStroke.Parent = btnClose
-
-local closePad = Instance.new("UIPadding")
-closePad.PaddingTop = UDim.new(0, 10)
-closePad.PaddingBottom = UDim.new(0, 10)
-closePad.PaddingLeft = UDim.new(0, 10)
-closePad.PaddingRight = UDim.new(0, 10)
-closePad.Parent = btnClose
 dockButtons["Close"] = btnClose
 
 local floatingBubble = Instance.new("ImageButton")
 floatingBubble.Name = "ORC_FloatingBubble"
-floatingBubble.Size = UDim2.new(0, 46, 0, 46)
-floatingBubble.Position = UDim2.new(1, -58, 0.45, 0)
+floatingBubble.Size = UDim2.new(0, 48, 0, 48)
+floatingBubble.Position = UDim2.new(1, -62, 0.45, 0)
 floatingBubble.BackgroundColor3 = C_BLACK
 floatingBubble.Image = "https://raw.githubusercontent.com/v-zxn/Exorc/refs/heads/main/logo.png"
 floatingBubble.ScaleType = Enum.ScaleType.Fit
@@ -290,20 +246,49 @@ fbStroke.Color = C_WHITE
 fbStroke.Thickness = 1.5
 fbStroke.Parent = floatingBubble
 
-local mainWindow = Instance.new("Frame")
-mainWindow.Name = "MainWindow"
-mainWindow.Size = UDim2.new(1, -56, 1, 0)
-mainWindow.Position = UDim2.new(0, 0, 0, 0)
-mainWindow.BackgroundColor3 = C_PANEL
-mainWindow.BorderSizePixel = 0
-mainWindow.Parent = fullBackdrop
+local floatingBubbleFallback = Instance.new("TextLabel")
+floatingBubbleFallback.Size = UDim2.new(1, 0, 1, 0)
+floatingBubbleFallback.BackgroundTransparency = 1
+floatingBubbleFallback.Text = "Ω"
+floatingBubbleFallback.TextColor3 = C_WHITE
+floatingBubbleFallback.Font = Enum.Font.GothamBold
+floatingBubbleFallback.TextSize = 20
+floatingBubbleFallback.Parent = floatingBubble
+
+floatingBubble.Changed:Connect(function()
+    if floatingBubble.IsLoaded then
+        floatingBubbleFallback.Visible = false
+    end
+end)
+
+local floatingWindow = Instance.new("Frame")
+floatingWindow.Name = "FloatingWindow"
+floatingWindow.Size = UDim2.new(0.56, 0, 0.76, 0)
+floatingWindow.Position = UDim2.new(0.20, 0, 0.12, 0)
+floatingWindow.BackgroundColor3 = C_PANEL
+floatingWindow.BorderSizePixel = 0
+floatingWindow.Active = true
+floatingWindow.Parent = container
+
+local fwCorner = Instance.new("UICorner")
+fwCorner.CornerRadius = UDim.new(0, 14)
+fwCorner.Parent = floatingWindow
+
+local fwStroke = Instance.new("UIStroke")
+fwStroke.Color = C_BORDER
+fwStroke.Thickness = 1.2
+fwStroke.Parent = floatingWindow
 
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 40)
+header.Size = UDim2.new(1, 0, 0, 38)
 header.BackgroundColor3 = C_DARK
 header.BorderSizePixel = 0
-header.Parent = mainWindow
+header.Parent = floatingWindow
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 14)
+headerCorner.Parent = header
 
 local headerBottomBorder = Instance.new("Frame")
 headerBottomBorder.Size = UDim2.new(1, 0, 0, 1)
@@ -313,10 +298,10 @@ headerBottomBorder.BorderSizePixel = 0
 headerBottomBorder.Parent = header
 
 local headerTitle = Instance.new("TextLabel")
-headerTitle.Size = UDim2.new(0.5, 0, 1, 0)
-headerTitle.Position = UDim2.new(0, 16, 0, 0)
+headerTitle.Size = UDim2.new(0.6, 0, 1, 0)
+headerTitle.Position = UDim2.new(0, 14, 0, 0)
 headerTitle.BackgroundTransparency = 1
-headerTitle.Text = "ORC TITAN EXECUTOR"
+headerTitle.Text = "ORC EXECUTOR"
 headerTitle.TextColor3 = C_WHITE
 headerTitle.Font = Enum.Font.GothamBold
 headerTitle.TextSize = 13
@@ -324,8 +309,8 @@ headerTitle.TextXAlignment = Enum.TextXAlignment.Left
 headerTitle.Parent = header
 
 local headerStatus = Instance.new("TextLabel")
-headerStatus.Size = UDim2.new(0.5, -16, 1, 0)
-headerStatus.Position = UDim2.new(0.5, 0, 0, 0)
+headerStatus.Size = UDim2.new(0.4, -14, 1, 0)
+headerStatus.Position = UDim2.new(0.6, 0, 0, 0)
 headerStatus.BackgroundTransparency = 1
 headerStatus.Text = "READY"
 headerStatus.TextColor3 = C_SUBTLE
@@ -336,10 +321,10 @@ headerStatus.Parent = header
 
 local viewport = Instance.new("Frame")
 viewport.Name = "Viewport"
-viewport.Size = UDim2.new(1, -20, 1, -52)
-viewport.Position = UDim2.new(0, 10, 0, 46)
+viewport.Size = UDim2.new(1, -18, 1, -50)
+viewport.Position = UDim2.new(0, 9, 0, 44)
 viewport.BackgroundTransparency = 1
-viewport.Parent = mainWindow
+viewport.Parent = floatingWindow
 
 local pages = {}
 local switchTab = nil
@@ -353,7 +338,7 @@ pages["Executor"] = pageExecutor
 
 local editorScroll = Instance.new("ScrollingFrame")
 editorScroll.Name = "EditorScroll"
-editorScroll.Size = UDim2.new(1, 0, 1, -44)
+editorScroll.Size = UDim2.new(1, 0, 1, -42)
 editorScroll.Position = UDim2.new(0, 0, 0, 0)
 editorScroll.BackgroundColor3 = C_BLACK
 editorScroll.BorderSizePixel = 0
@@ -379,7 +364,7 @@ editorBox.AutomaticSize = Enum.AutomaticSize.Y
 editorBox.BackgroundTransparency = 1
 editorBox.TextColor3 = C_WHITE
 editorBox.PlaceholderText = "-- Type or paste Luau script here..."
-editorBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+editorBox.PlaceholderColor3 = Color3.fromRGB(110, 110, 120)
 editorBox.Font = Enum.Font.Code
 editorBox.TextSize = 13
 editorBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -390,15 +375,15 @@ editorBox.Text = ""
 editorBox.Parent = editorScroll
 
 local edPad = Instance.new("UIPadding")
-edPad.PaddingLeft = UDim.new(0, 12)
-edPad.PaddingTop = UDim.new(0, 12)
-edPad.PaddingRight = UDim.new(0, 12)
-edPad.PaddingBottom = UDim.new(0, 12)
+edPad.PaddingLeft = UDim.new(0, 10)
+edPad.PaddingTop = UDim.new(0, 10)
+edPad.PaddingRight = UDim.new(0, 10)
+edPad.PaddingBottom = UDim.new(0, 10)
 edPad.Parent = editorBox
 
 local btnRow = Instance.new("Frame")
-btnRow.Size = UDim2.new(1, 0, 0, 36)
-btnRow.Position = UDim2.new(0, 0, 1, -36)
+btnRow.Size = UDim2.new(1, 0, 0, 34)
+btnRow.Position = UDim2.new(0, 0, 1, -34)
 btnRow.BackgroundTransparency = 1
 btnRow.Parent = pageExecutor
 
@@ -410,7 +395,7 @@ btnRowLayout.Parent = btnRow
 
 local function makeActionBtn(text, bgCol, textCol, width)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0, width or 85, 1, 0)
+    b.Size = UDim2.new(0, width or 80, 1, 0)
     b.BackgroundColor3 = bgCol
     b.TextColor3 = textCol
     b.Font = Enum.Font.GothamBold
@@ -430,11 +415,11 @@ local function makeActionBtn(text, bgCol, textCol, width)
     return b
 end
 
-local btnSaveAs = makeActionBtn("SAVE", C_CARD, C_WHITE, 70)
-local btnSyncClip = makeActionBtn("PASTE", C_CARD, C_WHITE, 75)
-local btnCopy = makeActionBtn("COPY", C_CARD, C_WHITE, 65)
-local btnClear = makeActionBtn("CLEAR", C_CARD, C_WHITE, 65)
-local btnExecute = makeActionBtn("EXECUTE", C_WHITE, C_BLACK, 95)
+local btnSaveAs = makeActionBtn("SAVE", C_CARD, C_WHITE, 68)
+local btnSyncClip = makeActionBtn("PASTE", C_CARD, C_WHITE, 72)
+local btnCopy = makeActionBtn("COPY", C_CARD, C_WHITE, 62)
+local btnClear = makeActionBtn("CLEAR", C_CARD, C_WHITE, 62)
+local btnExecute = makeActionBtn("EXECUTE", C_WHITE, C_BLACK, 90)
 
 btnClear.MouseButton1Click:Connect(function()
     editorBox.Text = ""
@@ -478,13 +463,13 @@ pageSaved.Parent = viewport
 pages["Saved"] = pageSaved
 
 local savedTopBar = Instance.new("Frame")
-savedTopBar.Size = UDim2.new(1, 0, 0, 36)
+savedTopBar.Size = UDim2.new(1, 0, 0, 34)
 savedTopBar.Position = UDim2.new(0, 0, 0, 0)
 savedTopBar.BackgroundTransparency = 1
 savedTopBar.Parent = pageSaved
 
 local newScriptName = Instance.new("TextBox")
-newScriptName.Size = UDim2.new(1, -190, 1, 0)
+newScriptName.Size = UDim2.new(1, -180, 1, 0)
 newScriptName.BackgroundColor3 = C_BLACK
 newScriptName.TextColor3 = C_WHITE
 newScriptName.PlaceholderText = "Script name..."
@@ -509,8 +494,8 @@ nsnStroke.Thickness = 1
 nsnStroke.Parent = newScriptName
 
 local btnCreateScript = Instance.new("TextButton")
-btnCreateScript.Size = UDim2.new(0, 95, 1, 0)
-btnCreateScript.Position = UDim2.new(1, -182, 0, 0)
+btnCreateScript.Size = UDim2.new(0, 92, 1, 0)
+btnCreateScript.Position = UDim2.new(1, -172, 0, 0)
 btnCreateScript.BackgroundColor3 = C_WHITE
 btnCreateScript.TextColor3 = C_BLACK
 btnCreateScript.Font = Enum.Font.GothamBold
@@ -523,8 +508,8 @@ bcsCorner.CornerRadius = UDim.new(0, 8)
 bcsCorner.Parent = btnCreateScript
 
 local btnRefreshSaved = Instance.new("TextButton")
-btnRefreshSaved.Size = UDim2.new(0, 80, 1, 0)
-btnRefreshSaved.Position = UDim2.new(1, -80, 0, 0)
+btnRefreshSaved.Size = UDim2.new(0, 74, 1, 0)
+btnRefreshSaved.Position = UDim2.new(1, -74, 0, 0)
 btnRefreshSaved.BackgroundColor3 = C_CARD
 btnRefreshSaved.TextColor3 = C_WHITE
 btnRefreshSaved.Font = Enum.Font.GothamBold
@@ -537,8 +522,8 @@ brsCorner.CornerRadius = UDim.new(0, 8)
 brsCorner.Parent = btnRefreshSaved
 
 local savedScroll = Instance.new("ScrollingFrame")
-savedScroll.Size = UDim2.new(1, 0, 1, -44)
-savedScroll.Position = UDim2.new(0, 0, 0, 44)
+savedScroll.Size = UDim2.new(1, 0, 1, -42)
+savedScroll.Position = UDim2.new(0, 0, 0, 42)
 savedScroll.BackgroundTransparency = 1
 savedScroll.BorderSizePixel = 0
 savedScroll.ScrollBarThickness = 4
@@ -564,9 +549,9 @@ local function refreshSavedList()
 
     if #fileList == 0 then
         local emptyLbl = Instance.new("TextLabel")
-        emptyLbl.Size = UDim2.new(1, 0, 0, 60)
+        emptyLbl.Size = UDim2.new(1, 0, 0, 50)
         emptyLbl.BackgroundTransparency = 1
-        emptyLbl.Text = "No scripts saved in /sdcard/ORC/scripts/\nType code in Executor, name it above, and click SAVE EDITOR."
+        emptyLbl.Text = "No scripts in /sdcard/ORC/scripts/\nSave your custom scripts here."
         emptyLbl.TextColor3 = C_MUTED
         emptyLbl.Font = Enum.Font.Code
         emptyLbl.TextSize = 11
@@ -578,7 +563,7 @@ local function refreshSavedList()
         local fileName = string.gsub(filePath, "^.*/", "")
         if fileName ~= "README.txt" and not string.find(fileName, "^%.") then
             local card = Instance.new("Frame")
-            card.Size = UDim2.new(1, -4, 0, 48)
+            card.Size = UDim2.new(1, -4, 0, 44)
             card.BackgroundColor3 = C_BLACK
             card.Parent = savedScroll
 
@@ -592,8 +577,8 @@ local function refreshSavedList()
             cStroke.Parent = card
 
             local nameLbl = Instance.new("TextLabel")
-            nameLbl.Size = UDim2.new(1, -210, 1, 0)
-            nameLbl.Position = UDim2.new(0, 12, 0, 0)
+            nameLbl.Size = UDim2.new(1, -200, 1, 0)
+            nameLbl.Position = UDim2.new(0, 10, 0, 0)
             nameLbl.BackgroundTransparency = 1
             nameLbl.Text = fileName
             nameLbl.TextColor3 = C_WHITE
@@ -604,8 +589,8 @@ local function refreshSavedList()
             nameLbl.Parent = card
 
             local loadBtn = Instance.new("TextButton")
-            loadBtn.Size = UDim2.new(0, 60, 0, 30)
-            loadBtn.Position = UDim2.new(1, -196, 0.5, -15)
+            loadBtn.Size = UDim2.new(0, 58, 0, 28)
+            loadBtn.Position = UDim2.new(1, -188, 0.5, -14)
             loadBtn.BackgroundColor3 = C_CARD
             loadBtn.TextColor3 = C_WHITE
             loadBtn.Font = Enum.Font.GothamBold
@@ -618,8 +603,8 @@ local function refreshSavedList()
             lbCorner.Parent = loadBtn
 
             local runBtn = Instance.new("TextButton")
-            runBtn.Size = UDim2.new(0, 60, 0, 30)
-            runBtn.Position = UDim2.new(1, -130, 0.5, -15)
+            runBtn.Size = UDim2.new(0, 58, 0, 28)
+            runBtn.Position = UDim2.new(1, -124, 0.5, -14)
             runBtn.BackgroundColor3 = C_WHITE
             runBtn.TextColor3 = C_BLACK
             runBtn.Font = Enum.Font.GothamBold
@@ -632,9 +617,9 @@ local function refreshSavedList()
             rbCorner.Parent = runBtn
 
             local delBtn = Instance.new("TextButton")
-            delBtn.Size = UDim2.new(0, 60, 0, 30)
-            delBtn.Position = UDim2.new(1, -64, 0.5, -15)
-            delBtn.BackgroundColor3 = Color3.fromRGB(40, 16, 16)
+            delBtn.Size = UDim2.new(0, 58, 0, 28)
+            delBtn.Position = UDim2.new(1, -60, 0.5, -14)
+            delBtn.BackgroundColor3 = Color3.fromRGB(42, 16, 16)
             delBtn.TextColor3 = Color3.fromRGB(255, 120, 120)
             delBtn.Font = Enum.Font.GothamBold
             delBtn.TextSize = 11
@@ -713,13 +698,13 @@ pageSearch.Parent = viewport
 pages["Search"] = pageSearch
 
 local searchHeaderBar = Instance.new("Frame")
-searchHeaderBar.Size = UDim2.new(1, 0, 0, 36)
+searchHeaderBar.Size = UDim2.new(1, 0, 0, 34)
 searchHeaderBar.Position = UDim2.new(0, 0, 0, 0)
 searchHeaderBar.BackgroundTransparency = 1
 searchHeaderBar.Parent = pageSearch
 
 local searchBar = Instance.new("TextBox")
-searchBar.Size = UDim2.new(1, -100, 1, 0)
+searchBar.Size = UDim2.new(1, -95, 1, 0)
 searchBar.Position = UDim2.new(0, 0, 0, 0)
 searchBar.BackgroundColor3 = C_BLACK
 searchBar.TextColor3 = C_WHITE
@@ -736,7 +721,7 @@ sbCorner.CornerRadius = UDim.new(0, 8)
 sbCorner.Parent = searchBar
 
 local sbPad = Instance.new("UIPadding")
-sbPad.PaddingLeft = UDim.new(0, 12)
+sbPad.PaddingLeft = UDim.new(0, 10)
 sbPad.Parent = searchBar
 
 local sbStroke = Instance.new("UIStroke")
@@ -745,8 +730,8 @@ sbStroke.Thickness = 1
 sbStroke.Parent = searchBar
 
 local searchBtn = Instance.new("TextButton")
-searchBtn.Size = UDim2.new(0, 92, 1, 0)
-searchBtn.Position = UDim2.new(1, -92, 0, 0)
+searchBtn.Size = UDim2.new(0, 88, 1, 0)
+searchBtn.Position = UDim2.new(1, -88, 0, 0)
 searchBtn.BackgroundColor3 = C_WHITE
 searchBtn.TextColor3 = C_BLACK
 searchBtn.Font = Enum.Font.GothamBold
@@ -759,8 +744,8 @@ searchBtnCorner.CornerRadius = UDim.new(0, 8)
 searchBtnCorner.Parent = searchBtn
 
 local searchScroll = Instance.new("ScrollingFrame")
-searchScroll.Size = UDim2.new(1, 0, 1, -44)
-searchScroll.Position = UDim2.new(0, 0, 0, 44)
+searchScroll.Size = UDim2.new(1, 0, 1, -42)
+searchScroll.Position = UDim2.new(0, 0, 0, 42)
 searchScroll.BackgroundTransparency = 1
 searchScroll.BorderSizePixel = 0
 searchScroll.ScrollBarThickness = 4
@@ -809,7 +794,7 @@ local function performScriptBloxSearch(query)
 
                 for _, item in ipairs(scriptsList) do
                     local card = Instance.new("Frame")
-                    card.Size = UDim2.new(1, -4, 0, 68)
+                    card.Size = UDim2.new(1, -4, 0, 64)
                     card.BackgroundColor3 = C_BLACK
                     card.Parent = searchScroll
 
@@ -823,8 +808,8 @@ local function performScriptBloxSearch(query)
                     cs.Parent = card
 
                     local img = Instance.new("ImageLabel")
-                    img.Size = UDim2.new(0, 52, 0, 52)
-                    img.Position = UDim2.new(0, 8, 0.5, -26)
+                    img.Size = UDim2.new(0, 48, 0, 48)
+                    img.Position = UDim2.new(0, 8, 0.5, -24)
                     img.BackgroundColor3 = C_CARD
                     img.ScaleType = Enum.ScaleType.Crop
                     img.Parent = card
@@ -844,8 +829,8 @@ local function performScriptBloxSearch(query)
                     end
 
                     local titleLbl = Instance.new("TextLabel")
-                    titleLbl.Size = UDim2.new(1, -210, 0, 22)
-                    titleLbl.Position = UDim2.new(0, 68, 0, 10)
+                    titleLbl.Size = UDim2.new(1, -195, 0, 20)
+                    titleLbl.Position = UDim2.new(0, 64, 0, 10)
                     titleLbl.BackgroundTransparency = 1
                     titleLbl.Text = item.title or "Script"
                     titleLbl.TextColor3 = C_WHITE
@@ -856,8 +841,8 @@ local function performScriptBloxSearch(query)
                     titleLbl.Parent = card
 
                     local gameLbl = Instance.new("TextLabel")
-                    gameLbl.Size = UDim2.new(1, -210, 0, 18)
-                    gameLbl.Position = UDim2.new(0, 68, 0, 34)
+                    gameLbl.Size = UDim2.new(1, -195, 0, 18)
+                    gameLbl.Position = UDim2.new(0, 64, 0, 32)
                     gameLbl.BackgroundTransparency = 1
                     gameLbl.Text = (item.game and item.game.name) or "Universal"
                     gameLbl.TextColor3 = C_MUTED
@@ -868,8 +853,8 @@ local function performScriptBloxSearch(query)
                     gameLbl.Parent = card
 
                     local loadBtn = Instance.new("TextButton")
-                    loadBtn.Size = UDim2.new(0, 62, 0, 32)
-                    loadBtn.Position = UDim2.new(1, -140, 0.5, -16)
+                    loadBtn.Size = UDim2.new(0, 58, 0, 28)
+                    loadBtn.Position = UDim2.new(1, -128, 0.5, -14)
                     loadBtn.BackgroundColor3 = C_CARD
                     loadBtn.TextColor3 = C_WHITE
                     loadBtn.Font = Enum.Font.GothamBold
@@ -882,8 +867,8 @@ local function performScriptBloxSearch(query)
                     lbC.Parent = loadBtn
 
                     local execBtn = Instance.new("TextButton")
-                    execBtn.Size = UDim2.new(0, 66, 0, 32)
-                    execBtn.Position = UDim2.new(1, -72, 0.5, -16)
+                    execBtn.Size = UDim2.new(0, 60, 0, 28)
+                    execBtn.Position = UDim2.new(1, -66, 0.5, -14)
                     execBtn.BackgroundColor3 = C_WHITE
                     execBtn.TextColor3 = C_BLACK
                     execBtn.Font = Enum.Font.GothamBold
@@ -940,14 +925,14 @@ pageConsole.Parent = viewport
 pages["Console"] = pageConsole
 
 local consoleTopBar = Instance.new("Frame")
-consoleTopBar.Size = UDim2.new(1, 0, 0, 30)
+consoleTopBar.Size = UDim2.new(1, 0, 0, 28)
 consoleTopBar.Position = UDim2.new(0, 0, 0, 0)
 consoleTopBar.BackgroundTransparency = 1
 consoleTopBar.Parent = pageConsole
 
 local btnClearBoth = Instance.new("TextButton")
-btnClearBoth.Size = UDim2.new(0, 100, 1, 0)
-btnClearBoth.Position = UDim2.new(1, -100, 0, 0)
+btnClearBoth.Size = UDim2.new(0, 90, 1, 0)
+btnClearBoth.Position = UDim2.new(1, -90, 0, 0)
 btnClearBoth.BackgroundColor3 = C_CARD
 btnClearBoth.TextColor3 = C_WHITE
 btnClearBoth.Font = Enum.Font.GothamBold
@@ -960,8 +945,8 @@ bcCorner.CornerRadius = UDim.new(0, 6)
 bcCorner.Parent = btnClearBoth
 
 local consoleBody = Instance.new("Frame")
-consoleBody.Size = UDim2.new(1, 0, 1, -34)
-consoleBody.Position = UDim2.new(0, 0, 0, 34)
+consoleBody.Size = UDim2.new(1, 0, 1, -32)
+consoleBody.Position = UDim2.new(0, 0, 0, 32)
 consoleBody.BackgroundTransparency = 1
 consoleBody.Parent = pageConsole
 
@@ -986,7 +971,7 @@ local function makeConsolePane(title)
     pStroke.Parent = pane
 
     local pHeader = Instance.new("Frame")
-    pHeader.Size = UDim2.new(1, 0, 0, 28)
+    pHeader.Size = UDim2.new(1, 0, 0, 26)
     pHeader.BackgroundColor3 = C_CARD
     pHeader.BorderSizePixel = 0
     pHeader.Parent = pane
@@ -996,19 +981,19 @@ local function makeConsolePane(title)
     phCorner.Parent = pHeader
 
     local pTitle = Instance.new("TextLabel")
-    pTitle.Size = UDim2.new(1, -80, 1, 0)
-    pTitle.Position = UDim2.new(0, 10, 0, 0)
+    pTitle.Size = UDim2.new(1, -70, 1, 0)
+    pTitle.Position = UDim2.new(0, 8, 0, 0)
     pTitle.BackgroundTransparency = 1
     pTitle.Text = title
     pTitle.TextColor3 = C_WHITE
     pTitle.Font = Enum.Font.GothamBold
-    pTitle.TextSize = 11
+    pTitle.TextSize = 10
     pTitle.TextXAlignment = Enum.TextXAlignment.Left
     pTitle.Parent = pHeader
 
     local paneClearBtn = Instance.new("TextButton")
-    paneClearBtn.Size = UDim2.new(0, 50, 0, 20)
-    paneClearBtn.Position = UDim2.new(1, -56, 0.5, -10)
+    paneClearBtn.Size = UDim2.new(0, 46, 0, 18)
+    paneClearBtn.Position = UDim2.new(1, -50, 0.5, -9)
     paneClearBtn.BackgroundColor3 = C_BLACK
     paneClearBtn.TextColor3 = C_MUTED
     paneClearBtn.Font = Enum.Font.GothamBold
@@ -1021,8 +1006,8 @@ local function makeConsolePane(title)
     pcbCorner.Parent = paneClearBtn
 
     local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(1, -12, 1, -36)
-    scroll.Position = UDim2.new(0, 6, 0, 32)
+    scroll.Size = UDim2.new(1, -12, 1, -32)
+    scroll.Position = UDim2.new(0, 6, 0, 28)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 3
@@ -1068,7 +1053,7 @@ local function addLogMessage(scrollFrame, text, col, tag)
     row.Parent = scrollFrame
 
     local tagLabel = Instance.new("TextLabel")
-    tagLabel.Size = UDim2.new(0, 36, 0, 16)
+    tagLabel.Size = UDim2.new(0, 34, 0, 16)
     tagLabel.BackgroundTransparency = 1
     tagLabel.Text = tag or "ERR"
     tagLabel.TextColor3 = col
@@ -1078,8 +1063,8 @@ local function addLogMessage(scrollFrame, text, col, tag)
     tagLabel.Parent = row
 
     local msgLabel = Instance.new("TextLabel")
-    msgLabel.Size = UDim2.new(1, -40, 0, 0)
-    msgLabel.Position = UDim2.new(0, 40, 0, 0)
+    msgLabel.Size = UDim2.new(1, -38, 0, 0)
+    msgLabel.Position = UDim2.new(0, 38, 0, 0)
     msgLabel.AutomaticSize = Enum.AutomaticSize.Y
     msgLabel.BackgroundTransparency = 1
     msgLabel.Text = tostring(text)
@@ -1131,7 +1116,7 @@ utilsLayout.Parent = pageUtils
 
 local function makeUtilToggle(title, desc, defaultState, callback)
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, 52)
+    card.Size = UDim2.new(1, -4, 0, 48)
     card.BackgroundColor3 = C_BLACK
     card.Parent = pageUtils
 
@@ -1145,8 +1130,8 @@ local function makeUtilToggle(title, desc, defaultState, callback)
     cs.Parent = card
 
     local tLbl = Instance.new("TextLabel")
-    tLbl.Size = UDim2.new(0.7, 0, 0, 22)
-    tLbl.Position = UDim2.new(0, 12, 0, 6)
+    tLbl.Size = UDim2.new(0.7, 0, 0, 20)
+    tLbl.Position = UDim2.new(0, 10, 0, 5)
     tLbl.BackgroundTransparency = 1
     tLbl.Text = title
     tLbl.TextColor3 = C_WHITE
@@ -1156,8 +1141,8 @@ local function makeUtilToggle(title, desc, defaultState, callback)
     tLbl.Parent = card
 
     local dLbl = Instance.new("TextLabel")
-    dLbl.Size = UDim2.new(0.7, 0, 0, 18)
-    dLbl.Position = UDim2.new(0, 12, 0, 28)
+    dLbl.Size = UDim2.new(0.7, 0, 0, 16)
+    dLbl.Position = UDim2.new(0, 10, 0, 25)
     dLbl.BackgroundTransparency = 1
     dLbl.Text = desc
     dLbl.TextColor3 = C_MUTED
@@ -1167,8 +1152,8 @@ local function makeUtilToggle(title, desc, defaultState, callback)
     dLbl.Parent = card
 
     local tglBtn = Instance.new("TextButton")
-    tglBtn.Size = UDim2.new(0, 68, 0, 30)
-    tglBtn.Position = UDim2.new(1, -76, 0.5, -15)
+    tglBtn.Size = UDim2.new(0, 64, 0, 28)
+    tglBtn.Position = UDim2.new(1, -72, 0.5, -14)
     tglBtn.BackgroundColor3 = defaultState and C_WHITE or C_CARD
     tglBtn.TextColor3 = defaultState and C_BLACK or C_MUTED
     tglBtn.Font = Enum.Font.GothamBold
@@ -1192,7 +1177,7 @@ end
 
 local function makeUtilAction(title, desc, btnText, callback)
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, 52)
+    card.Size = UDim2.new(1, -4, 0, 48)
     card.BackgroundColor3 = C_BLACK
     card.Parent = pageUtils
 
@@ -1206,8 +1191,8 @@ local function makeUtilAction(title, desc, btnText, callback)
     cs.Parent = card
 
     local tLbl = Instance.new("TextLabel")
-    tLbl.Size = UDim2.new(0.7, 0, 0, 22)
-    tLbl.Position = UDim2.new(0, 12, 0, 6)
+    tLbl.Size = UDim2.new(0.7, 0, 0, 20)
+    tLbl.Position = UDim2.new(0, 10, 0, 5)
     tLbl.BackgroundTransparency = 1
     tLbl.Text = title
     tLbl.TextColor3 = C_WHITE
@@ -1217,8 +1202,8 @@ local function makeUtilAction(title, desc, btnText, callback)
     tLbl.Parent = card
 
     local dLbl = Instance.new("TextLabel")
-    dLbl.Size = UDim2.new(0.7, 0, 0, 18)
-    dLbl.Position = UDim2.new(0, 12, 0, 28)
+    dLbl.Size = UDim2.new(0.7, 0, 0, 16)
+    dLbl.Position = UDim2.new(0, 10, 0, 25)
     dLbl.BackgroundTransparency = 1
     dLbl.Text = desc
     dLbl.TextColor3 = C_MUTED
@@ -1228,8 +1213,8 @@ local function makeUtilAction(title, desc, btnText, callback)
     dLbl.Parent = card
 
     local actBtn = Instance.new("TextButton")
-    actBtn.Size = UDim2.new(0, 76, 0, 30)
-    actBtn.Position = UDim2.new(1, -84, 0.5, -15)
+    actBtn.Size = UDim2.new(0, 72, 0, 28)
+    actBtn.Position = UDim2.new(1, -80, 0.5, -14)
     actBtn.BackgroundColor3 = C_WHITE
     actBtn.TextColor3 = C_BLACK
     actBtn.Font = Enum.Font.GothamBold
@@ -1354,7 +1339,7 @@ function switchTab(tabName)
     if isTransitioning or currentTab == tabName then return end
     isTransitioning = true
 
-    headerTitle.Text = "ORC TITAN EXECUTOR // " .. string.upper(tabName)
+    headerTitle.Text = "ORC EXECUTOR // " .. string.upper(tabName)
 
     local oldPage = pages[currentTab]
     local newPage = pages[tabName]
@@ -1372,9 +1357,9 @@ function switchTab(tabName)
         for name, btn in pairs(dockButtons) do
             if name ~= "Close" then
                 if name == tabName then
-                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_WHITE, ImageColor3 = C_BLACK }):Play()
+                    TweenService:Create(btn, TweenInfo.new(0.2), { TextColor3 = C_WHITE }):Play()
                 else
-                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_CARD, ImageColor3 = C_MUTED }):Play()
+                    TweenService:Create(btn, TweenInfo.new(0.2), { TextColor3 = C_MUTED }):Play()
                 end
             end
         end
@@ -1414,26 +1399,25 @@ end
 
 btnExecutor.MouseButton1Click:Connect(function() switchTab("Executor") end)
 btnSaved.MouseButton1Click:Connect(function() switchTab("Saved") end)
-btnSearch.MouseButton1Connect = btnSearch.MouseButton1Click:Connect(function() switchTab("Search") end)
+btnSearch.MouseButton1Click:Connect(function() switchTab("Search") end)
 btnConsole.MouseButton1Click:Connect(function() switchTab("Console") end)
 btnUtils.MouseButton1Click:Connect(function() switchTab("Utils") end)
 
 task.defer(function()
     pages["Executor"].Visible = true
     if dockButtons["Executor"] then
-        dockButtons["Executor"].BackgroundColor3 = C_WHITE
-        dockButtons["Executor"].ImageColor3 = C_BLACK
+        dockButtons["Executor"].TextColor3 = C_WHITE
     end
 end)
 
 btnClose.MouseButton1Click:Connect(function()
-    fullBackdrop.Visible = false
+    container.Visible = false
     floatingBubble.Visible = true
 end)
 
 floatingBubble.MouseButton1Click:Connect(function()
     floatingBubble.Visible = false
-    fullBackdrop.Visible = true
+    container.Visible = true
 end)
 
-print("[ORC] Complete Titan Suite Initialized.")
+print("[ORC] Complete Delta Floating Suite Initialized.")
