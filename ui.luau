@@ -1,13 +1,13 @@
 -- ==============================================================================
--- ORC TITAN FRAMEWORK v8.2 (MIDNIGHT DEEP BLUE & PURE BLACK)
--- #020611 / #070e1c • HIGH-TECH CYBERPUNK • ZERO CLUTTER
+-- ORC TITAN FRAMEWORK v9.0 (PURE MONOCHROME • TABBED MULTI-TERMINAL)
+-- #000000 / #FFFFFF • iOS SWITCHES • SCRIPTBLOX MODAL • FILE TREE
 -- ==============================================================================
 
 -- ==========================================
 -- [1] ASSET & ICON CONFIGURATION
 -- ==========================================
 local ASSETS = {
-    -- Sidebar dock icons (Tree Hub CLI Registry)
+    -- Sidebar dock icons (Clean linear / bold style)
     ICON_EXECUTOR = "rbxassetid://137645011895167", -- code-2-bold
     ICON_SAVED    = "rbxassetid://76034753816998",  -- folder-2-bold
     ICON_SEARCH   = "rbxassetid://104777342222451", -- card-search-bold
@@ -15,7 +15,6 @@ local ASSETS = {
     ICON_SETTINGS = "rbxassetid://79820790543002",  -- colour-tuneing-bold
     ICON_CLOSE    = "rbxassetid://117747448917698", -- close-square-bold
     
-    -- Remote Project Logo from GitHub
     PROJECT_LOGO  = "https://raw.githubusercontent.com/v-zxn/Exorc/main/logo.png",
     FALLBACK_THUMB = "rbxassetid://104777342222451"
 }
@@ -53,19 +52,26 @@ screenGui.DisplayOrder = 999999
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = targetParent
 
+-- Cleanup UI on teleport to prevent stale thread crashes
+pcall(function()
+    if player then
+        player.OnTeleport:Connect(function()
+            if screenGui then screenGui:Destroy() end
+        end)
+    end
+end)
+
 -- ==========================================
--- [3] MIDNIGHT NAVY & DEEP BLUE PALETTE
+-- [3] PURE MONOCHROME PALETTE & FONTS
 -- ==========================================
-local C_BLACK   = Color3.fromRGB(2, 4, 8)        -- Absolute deep black-blue
-local C_DARK    = Color3.fromRGB(5, 10, 20)      -- Dark navy canvas
-local C_PANEL   = Color3.fromRGB(8, 14, 28)      -- Rich midnight panel
-local C_CARD    = Color3.fromRGB(13, 22, 42)     -- Elevated navy card
-local C_BORDER  = Color3.fromRGB(25, 45, 80)     -- Subtle electric border
-local C_WHITE   = Color3.fromRGB(240, 245, 255)  -- Pure crisp white-blue
-local C_MUTED   = Color3.fromRGB(130, 150, 180)  -- Muted slate blue
-local C_SUBTLE  = Color3.fromRGB(70, 90, 120)    -- Deep slate
-local C_BLUE    = Color3.fromRGB(0, 140, 255)    -- High-tech neon cyan-blue
-local C_BLUE_BG = Color3.fromRGB(10, 30, 65)     -- Glow tint
+local C_BLACK   = Color3.fromRGB(0, 0, 0)
+local C_DARK    = Color3.fromRGB(8, 8, 10)
+local C_PANEL   = Color3.fromRGB(14, 14, 16)
+local C_CARD    = Color3.fromRGB(22, 22, 26)
+local C_BORDER  = Color3.fromRGB(36, 36, 44)
+local C_WHITE   = Color3.fromRGB(255, 255, 255)
+local C_MUTED   = Color3.fromRGB(160, 160, 170)
+local C_SUBTLE  = Color3.fromRGB(90, 90, 100)
 
 local FONT_TITLE = Enum.Font.GothamBold
 local FONT_TEXT  = Enum.Font.Gotham
@@ -392,7 +398,7 @@ local pages = {}
 local switchTab = nil
 
 -- ==========================================
--- [8] TAB 1: ADVANCED TERMINAL EXECUTOR
+-- [8] TAB 1: ADVANCED MULTI-TAB TERMINAL EXECUTOR
 -- ==========================================
 local pageExecutor = Instance.new("Frame")
 pageExecutor.Name = "Page_Executor"
@@ -401,54 +407,142 @@ pageExecutor.BackgroundTransparency = 1
 pageExecutor.Parent = viewport
 pages["Executor"] = pageExecutor
 
-local editorScroll = Instance.new("ScrollingFrame")
-editorScroll.Name = "EditorScroll"
-editorScroll.Size = UDim2.new(1, 0, 1, -44)
-editorScroll.BackgroundColor3 = C_BLACK
-editorScroll.BorderSizePixel = 0
-editorScroll.ScrollBarThickness = 4
-editorScroll.ScrollBarImageColor3 = C_WHITE
-editorScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-editorScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-editorScroll.Parent = pageExecutor
+-- Tab Bar for Multi-Terminal
+local terminalTabBar = Instance.new("Frame")
+terminalTabBar.Size = UDim2.new(1, 0, 0, 30)
+terminalTabBar.BackgroundColor3 = C_DARK
+terminalTabBar.BorderSizePixel = 0
+terminalTabBar.Parent = pageExecutor
 
-local edCorner = Instance.new("UICorner")
-edCorner.CornerRadius = UDim.new(0, 8)
-edCorner.Parent = editorScroll
+local ttbCorner = Instance.new("UICorner")
+ttbCorner.CornerRadius = UDim.new(0, 6)
+ttbCorner.Parent = terminalTabBar
 
-local edStroke = Instance.new("UIStroke")
-edStroke.Color = C_BORDER
-edStroke.Thickness = 1
-edStroke.Parent = editorScroll
+local ttbLayout = Instance.new("UIListLayout")
+ttbLayout.FillDirection = Enum.FillDirection.Horizontal
+ttbLayout.Padding = UDim.new(0, 6)
+ttbLayout.Parent = terminalTabBar
 
-local editorBox = Instance.new("TextBox")
-editorBox.Name = "CodeEditor"
-editorBox.Size = UDim2.new(1, 0, 1, 0)
-editorBox.AutomaticSize = Enum.AutomaticSize.Y
-editorBox.BackgroundTransparency = 1
-editorBox.TextColor3 = C_WHITE
-editorBox.PlaceholderText = "-- Type or paste Luau code here..."
-editorBox.PlaceholderColor3 = C_SUBTLE
-editorBox.Font = FONT_CODE
-editorBox.TextSize = 13
-editorBox.TextXAlignment = Enum.TextXAlignment.Left
-editorBox.TextYAlignment = Enum.TextYAlignment.Top
-editorBox.ClearTextOnFocus = false
-editorBox.MultiLine = true
-editorBox.Text = ""
-editorBox.Parent = editorScroll
+local btnNewTerminal = Instance.new("TextButton")
+btnNewTerminal.Size = UDim2.new(0, 26, 0, 24)
+btnNewTerminal.Position = UDim2.new(0, 4, 0, 3)
+btnNewTerminal.BackgroundColor3 = C_CARD
+btnNewTerminal.TextColor3 = C_WHITE
+btnNewTerminal.Font = FONT_TITLE
+btnNewTerminal.TextSize = 13
+btnNewTerminal.Text = "+"
+btnNewTerminal.Parent = terminalTabBar
 
-local edPad = Instance.new("UIPadding")
-edPad.PaddingLeft = UDim.new(0, 12)
-edPad.PaddingTop = UDim.new(0, 12)
-edPad.PaddingRight = UDim.new(0, 12)
-edPad.PaddingBottom = UDim.new(0, 12)
-edPad.Parent = editorBox
+local bntCorner = Instance.new("UICorner")
+bntCorner.CornerRadius = UDim.new(0, 5)
+bntCorner.Parent = btnNewTerminal
+
+local terminals = {}
+local activeTerminalIndex = 1
+local tabsContainer = terminalTabBar
+
+local function makeTerminalTab(index, title)
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(0, 85, 0, 24)
+    tabBtn.BackgroundColor3 = (index == activeTerminalIndex) and C_WHITE or C_CARD
+    tabBtn.TextColor3 = (index == activeTerminalIndex) and C_BLACK or C_MUTED
+    tabBtn.Font = FONT_TITLE
+    tabBtn.TextSize = 10
+    tabBtn.Text = title or ("Tab " .. tostring(index))
+    tabBtn.Parent = tabsContainer
+
+    local tc = Instance.new("UICorner")
+    tc.CornerRadius = UDim.new(0, 5)
+    tc.Parent = tabBtn
+
+    return tabBtn
+end
+
+local function switchTerminal(index)
+    activeTerminalIndex = index
+    for i, t in ipairs(terminals) do
+        t.Scroll.Visible = (i == index)
+        if t.TabBtn then
+            t.TabBtn.BackgroundColor3 = (i == index) and C_WHITE or C_CARD
+            t.TabBtn.TextColor3 = (i == index) and C_BLACK or C_MUTED
+        end
+    end
+end
+
+local function createTerminal(title, defaultText)
+    local index = #terminals + 1
+    local tabBtn = makeTerminalTab(index, title)
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Name = "EditorScroll_" .. tostring(index)
+    scroll.Size = UDim2.new(1, 0, 1, -74)
+    scroll.Position = UDim2.new(0, 0, 0, 36)
+    scroll.BackgroundColor3 = C_BLACK
+    scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 4
+    scroll.ScrollBarImageColor3 = C_WHITE
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.Visible = (index == activeTerminalIndex)
+    scroll.Parent = pageExecutor
+
+    local scCorner = Instance.new("UICorner")
+    scCorner.CornerRadius = UDim.new(0, 8)
+    scCorner.Parent = scroll
+
+    local scStroke = Instance.new("UIStroke")
+    scStroke.Color = C_BORDER
+    scStroke.Thickness = 1
+    scStroke.Parent = scroll
+
+    local box = Instance.new("TextBox")
+    box.Name = "CodeBox"
+    box.Size = UDim2.new(1, 0, 1, 0)
+    box.AutomaticSize = Enum.AutomaticSize.Y
+    box.BackgroundTransparency = 1
+    box.TextColor3 = C_WHITE
+    box.PlaceholderText = "-- Type or paste Luau code here..."
+    box.PlaceholderColor3 = C_SUBTLE
+    box.Font = FONT_CODE
+    box.TextSize = 12
+    box.TextXAlignment = Enum.TextXAlignment.Left
+    box.TextYAlignment = Enum.TextYAlignment.Top
+    box.ClearTextOnFocus = false
+    box.MultiLine = true
+    box.Text = defaultText or ""
+    box.Parent = scroll
+
+    local bPad = Instance.new("UIPadding")
+    bPad.PaddingLeft = UDim.new(0, 12)
+    bPad.PaddingTop = UDim.new(0, 10)
+    bPad.PaddingRight = UDim.new(0, 12)
+    bPad.PaddingBottom = UDim.new(0, 10)
+    bPad.Parent = box
+
+    tabBtn.MouseButton1Click:Connect(function()
+        switchTerminal(index)
+    end)
+
+    terminals[index] = { Scroll = scroll, Box = box, TabBtn = tabBtn }
+    return terminals[index]
+end
+
+createTerminal("Main Tab", "")
+btnNewTerminal.MouseButton1Click:Connect(function()
+    if #terminals < 6 then
+        createTerminal("Tab " .. tostring(#terminals + 1), "")
+        switchTerminal(#terminals)
+    end
+end)
+
+local function getActiveEditor()
+    return terminals[activeTerminalIndex] and terminals[activeTerminalIndex].Box
+end
 
 -- Bottom Action Toolbar
 local btnRow = Instance.new("Frame")
-btnRow.Size = UDim2.new(1, 0, 0, 36)
-btnRow.Position = UDim2.new(0, 0, 1, -36)
+btnRow.Size = UDim2.new(1, 0, 0, 34)
+btnRow.Position = UDim2.new(0, 0, 1, -34)
 btnRow.BackgroundTransparency = 1
 btnRow.Parent = pageExecutor
 
@@ -470,7 +564,7 @@ local function makeActionBtn(text, bgCol, textCol, width)
     b.Parent = btnRow
 
     local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, 8)
+    c.CornerRadius = UDim.new(0, 7)
     c.Parent = b
 
     local s = Instance.new("UIStroke")
@@ -487,26 +581,30 @@ local btnClear    = makeActionBtn("CLEAR", C_CARD, C_WHITE, 65)
 local btnExecute  = makeActionBtn("EXECUTE", C_WHITE, C_BLACK, 95)
 
 btnClear.MouseButton1Click:Connect(function()
-    editorBox.Text = ""
+    local ed = getActiveEditor()
+    if ed then ed.Text = "" end
 end)
 
 btnSyncClip.MouseButton1Click:Connect(function()
     local text = readSystemClipboard()
-    if text and #text > 0 then
-        editorBox.Text = text
+    local ed = getActiveEditor()
+    if text and #text > 0 and ed then
+        ed.Text = text
         headerStatus.Text = "PASTED " .. tostring(#text) .. " BYTES"
     end
 end)
 
 btnCopy.MouseButton1Click:Connect(function()
-    if #editorBox.Text > 0 then
-        writeSystemClipboard(editorBox.Text)
+    local ed = getActiveEditor()
+    if ed and #ed.Text > 0 then
+        writeSystemClipboard(ed.Text)
         headerStatus.Text = "COPIED TO CLIPBOARD"
     end
 end)
 
 btnExecute.MouseButton1Click:Connect(function()
-    local src = editorBox.Text
+    local ed = getActiveEditor()
+    local src = ed and ed.Text
     if src and #src > 0 then
         local fn, err = loadstring(src)
         if fn then
@@ -722,7 +820,8 @@ end)
 
 btnOpenAddModal.MouseButton1Click:Connect(function()
     inputScriptName.Text = ""
-    inputScriptCode.Text = editorBox.Text
+    local ed = getActiveEditor()
+    inputScriptCode.Text = ed and ed.Text or ""
     addScriptModal.Visible = true
 end)
 
@@ -769,7 +868,15 @@ local function refreshSavedList()
         -- Ensure relative path format required by sandbox
         local relPath = string.find(normPath, "^" .. SCRIPTS_DIR) and normPath or (SCRIPTS_DIR .. "/" .. fileName)
 
-        if fileName ~= "README.txt" and not string.find(fileName, "^%.") then
+        -- Filter out internal scripts from Saved tab
+        local isExcluded = (fileName == "README.txt") or 
+                           (fileName == "target_ui.luau") or 
+                           (fileName == "trigger_ui.lua") or 
+                           (fileName == "trigger_ui.luau") or 
+                           string.find(fileName, "^target_ui") or 
+                           string.find(fileName, "^%.")
+
+        if not isExcluded then
             local card = Instance.new("Frame")
             card.Size = UDim2.new(1, -4, 0, 48)
             card.BackgroundColor3 = C_BLACK
@@ -852,7 +959,8 @@ local function refreshSavedList()
             loadBtn.MouseButton1Click:Connect(function()
                 local content = tryReadFile()
                 if content then
-                    editorBox.Text = content
+                    local ed = getActiveEditor()
+                    if ed then ed.Text = content end
                     if switchTab then switchTab("Executor") end
                     headerStatus.Text = "LOADED: " .. fileName
                 else
@@ -930,7 +1038,8 @@ end)
 
 btnSaveAs.MouseButton1Click:Connect(function()
     inputScriptName.Text = ""
-    inputScriptCode.Text = editorBox.Text
+    local ed = getActiveEditor()
+    inputScriptCode.Text = ed and ed.Text or ""
     if switchTab then switchTab("Saved") end
     addScriptModal.Visible = true
 end)
@@ -1006,15 +1115,15 @@ searchGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
 searchGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 searchGridLayout.Parent = searchGridScroll
 
--- Action Modal
+-- Expanded Script Action Modal
 local actionModal = Instance.new("Frame")
 actionModal.Name = "ActionModal"
-actionModal.Size = UDim2.new(0, 260, 0, 130)
-actionModal.Position = UDim2.new(0.5, -130, 0.5, -65)
+actionModal.Size = UDim2.new(0.85, 0, 0.85, 0)
+actionModal.Position = UDim2.new(0.075, 0, 0.075, 0)
 actionModal.BackgroundColor3 = C_DARK
 actionModal.BorderSizePixel = 0
 actionModal.Visible = false
-actionModal.ZIndex = 100
+actionModal.ZIndex = 150
 actionModal.Parent = floatingWindow
 
 local amCorner = Instance.new("UICorner")
@@ -1023,81 +1132,112 @@ amCorner.Parent = actionModal
 
 local amStroke = Instance.new("UIStroke")
 amStroke.Color = C_WHITE
-amStroke.Thickness = 1.2
+amStroke.Thickness = 1.4
 amStroke.Parent = actionModal
 
+local amImg = Instance.new("ImageLabel")
+amImg.Size = UDim2.new(0, 110, 0, 110)
+amImg.Position = UDim2.new(0, 14, 0, 14)
+amImg.BackgroundColor3 = C_BLACK
+amImg.ScaleType = Enum.ScaleType.Crop
+amImg.ZIndex = 151
+amImg.Parent = actionModal
+
+local amImgCorner = Instance.new("UICorner")
+amImgCorner.CornerRadius = UDim.new(0, 8)
+amImgCorner.Parent = amImg
+
+local amImgStroke = Instance.new("UIStroke")
+amImgStroke.Color = C_BORDER
+amImgStroke.Thickness = 1
+amImgStroke.Parent = amImg
+
 local amTitle = Instance.new("TextLabel")
-amTitle.Size = UDim2.new(1, -20, 0, 24)
-amTitle.Position = UDim2.new(0, 10, 0, 10)
+amTitle.Size = UDim2.new(1, -170, 0, 28)
+amTitle.Position = UDim2.new(0, 134, 0, 14)
 amTitle.BackgroundTransparency = 1
-amTitle.Text = "Select Action"
+amTitle.Text = "Script Details"
 amTitle.TextColor3 = C_WHITE
 amTitle.Font = FONT_TITLE
-amTitle.TextSize = 12
+amTitle.TextSize = 13
+amTitle.TextXAlignment = Enum.TextXAlignment.Left
 amTitle.TextTruncate = Enum.TextTruncate.AtEnd
-amTitle.ZIndex = 101
+amTitle.ZIndex = 151
 amTitle.Parent = actionModal
 
+local amAuthor = Instance.new("TextLabel")
+amAuthor.Size = UDim2.new(1, -170, 0, 20)
+amAuthor.Position = UDim2.new(0, 134, 0, 44)
+amAuthor.BackgroundTransparency = 1
+amAuthor.Text = "Author: Unknown"
+amAuthor.TextColor3 = C_MUTED
+amAuthor.Font = FONT_CODE
+amAuthor.TextSize = 11
+amAuthor.TextXAlignment = Enum.TextXAlignment.Left
+amAuthor.ZIndex = 151
+amAuthor.Parent = actionModal
+
+local amGame = Instance.new("TextLabel")
+amGame.Size = UDim2.new(1, -170, 0, 20)
+amGame.Position = UDim2.new(0, 134, 0, 66)
+amGame.BackgroundTransparency = 1
+amGame.Text = "Game: Universal"
+amGame.TextColor3 = C_MUTED
+amGame.Font = FONT_CODE
+amGame.TextSize = 11
+amGame.TextXAlignment = Enum.TextXAlignment.Left
+amGame.ZIndex = 151
+amGame.Parent = actionModal
+
 local amClose = Instance.new("TextButton")
-amClose.Size = UDim2.new(0, 24, 0, 24)
-amClose.Position = UDim2.new(1, -28, 0, 6)
+amClose.Size = UDim2.new(0, 26, 0, 26)
+amClose.Position = UDim2.new(1, -34, 0, 10)
 amClose.BackgroundTransparency = 1
 amClose.Text = "✕"
 amClose.TextColor3 = C_MUTED
 amClose.Font = FONT_TITLE
-amClose.TextSize = 12
-amClose.ZIndex = 102
+amClose.TextSize = 13
+amClose.ZIndex = 152
 amClose.Parent = actionModal
 
-local amBtnLoad = Instance.new("TextButton")
-amBtnLoad.Size = UDim2.new(0.44, 0, 0, 34)
-amBtnLoad.Position = UDim2.new(0.04, 0, 0, 45)
-amBtnLoad.BackgroundColor3 = C_CARD
-amBtnLoad.TextColor3 = C_WHITE
-amBtnLoad.Font = FONT_TITLE
-amBtnLoad.TextSize = 11
-amBtnLoad.Text = "LOAD"
-amBtnLoad.ZIndex = 101
-amBtnLoad.Parent = actionModal
+local amBtnRow = Instance.new("Frame")
+amBtnRow.Size = UDim2.new(1, -28, 0, 36)
+amBtnRow.Position = UDim2.new(0, 14, 1, -48)
+amBtnRow.BackgroundTransparency = 1
+amBtnRow.ZIndex = 151
+amBtnRow.Parent = actionModal
 
-local amblCorner = Instance.new("UICorner")
-amblCorner.CornerRadius = UDim.new(0, 6)
-amblCorner.Parent = amBtnLoad
+local amBtnRowLayout = Instance.new("UIListLayout")
+amBtnRowLayout.FillDirection = Enum.FillDirection.Horizontal
+amBtnRowLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+amBtnRowLayout.Padding = UDim.new(0, 8)
+amBtnRowLayout.Parent = amBtnRow
 
-local amBtnRun = Instance.new("TextButton")
-amBtnRun.Size = UDim2.new(0.44, 0, 0, 34)
-amBtnRun.Position = UDim2.new(0.52, 0, 0, 45)
-amBtnRun.BackgroundColor3 = C_WHITE
-amBtnRun.TextColor3 = C_BLACK
-amBtnRun.Font = FONT_TITLE
-amBtnRun.TextSize = 11
-amBtnRun.Text = "RUN"
-amBtnRun.ZIndex = 101
-amBtnRun.Parent = actionModal
+local function makeModalActionBtn(text, bgCol, textCol, width)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, width or 80, 1, 0)
+    b.BackgroundColor3 = bgCol
+    b.TextColor3 = textCol
+    b.Font = FONT_TITLE
+    b.TextSize = 11
+    b.Text = text
+    b.ZIndex = 152
+    b.Parent = amBtnRow
 
-local ambrCorner = Instance.new("UICorner")
-ambrCorner.CornerRadius = UDim.new(0, 6)
-ambrCorner.Parent = amBtnRun
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = b
 
-local amBtnSave = Instance.new("TextButton")
-amBtnSave.Size = UDim2.new(0.92, 0, 0, 30)
-amBtnSave.Position = UDim2.new(0.04, 0, 0, 88)
-amBtnSave.BackgroundColor3 = C_BLACK
-amBtnSave.TextColor3 = C_WHITE
-amBtnSave.Font = FONT_TITLE
-amBtnSave.TextSize = 11
-amBtnSave.Text = "SAVE TO LOCAL SCRIPTS"
-amBtnSave.ZIndex = 101
-amBtnSave.Parent = actionModal
+    local s = Instance.new("UIStroke")
+    s.Color = C_BORDER
+    s.Thickness = 1
+    s.Parent = b
+    return b
+end
 
-local ambsCorner = Instance.new("UICorner")
-ambsCorner.CornerRadius = UDim.new(0, 6)
-ambsCorner.Parent = amBtnSave
-
-local ambsStroke = Instance.new("UIStroke")
-ambsStroke.Color = C_BORDER
-ambsStroke.Thickness = 1
-ambsStroke.Parent = amBtnSave
+local amBtnSave = makeModalActionBtn("SAVE TO LOCAL", C_BLACK, C_WHITE, 120)
+local amBtnLoad = makeModalActionBtn("LOAD", C_CARD, C_WHITE, 70)
+local amBtnRun  = makeModalActionBtn("RUN", C_WHITE, C_BLACK, 70)
 
 local selectedCommunityScript = nil
 
@@ -1108,7 +1248,8 @@ end)
 
 amBtnLoad.MouseButton1Click:Connect(function()
     if selectedCommunityScript and selectedCommunityScript.script then
-        editorBox.Text = selectedCommunityScript.script
+        local ed = getActiveEditor()
+        if ed then ed.Text = selectedCommunityScript.script end
         actionModal.Visible = false
         if switchTab then switchTab("Executor") end
         headerStatus.Text = "LOADED TO EDITOR"
@@ -1264,7 +1405,10 @@ local function performScriptBloxSearch(query)
 
                     clickBtn.MouseButton1Click:Connect(function()
                         selectedCommunityScript = item
-                        amTitle.Text = item.title or "Select Action"
+                        amTitle.Text = item.title or "Script Details"
+                        amAuthor.Text = "Author: " .. (item.owner and item.owner.username or "Community")
+                        amGame.Text = "Game: " .. ((item.game and item.game.name) or "Universal")
+                        amImg.Image = img.Image
                         actionModal.Visible = true
                     end)
                 end
@@ -1536,7 +1680,7 @@ local function makeSectionHeader(title)
     lbl.Size = UDim2.new(1, 0, 0, 24)
     lbl.BackgroundTransparency = 1
     lbl.Text = ":: " .. string.upper(title)
-    lbl.TextColor3 = C_BLUE
+    lbl.TextColor3 = C_WHITE
     lbl.Font = FONT_TITLE
     lbl.TextSize = 11
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -1589,34 +1733,55 @@ local function makeSettingCard(title, desc, rightElement)
     return card
 end
 
+-- iOS Style Smooth Pill Switch
 local function makeSettingToggle(title, desc, defaultState, callback)
-    local tglBtn = Instance.new("TextButton")
-    tglBtn.Size = UDim2.new(0, 64, 0, 28)
-    tglBtn.BackgroundColor3 = defaultState and C_BLUE or C_DARK
-    tglBtn.TextColor3 = C_WHITE
-    tglBtn.Font = FONT_TITLE
-    tglBtn.TextSize = 11
-    tglBtn.Text = defaultState and "ON" or "OFF"
+    local switchTrack = Instance.new("TextButton")
+    switchTrack.Size = UDim2.new(0, 48, 0, 26)
+    switchTrack.BackgroundColor3 = defaultState and C_WHITE or C_BLACK
+    switchTrack.BorderSizePixel = 0
+    switchTrack.Text = ""
+    switchTrack.AutoButtonColor = false
 
-    local tbCorner = Instance.new("UICorner")
-    tbCorner.CornerRadius = UDim.new(0, 6)
-    tbCorner.Parent = tglBtn
+    local stCorner = Instance.new("UICorner")
+    stCorner.CornerRadius = UDim.new(1, 0)
+    stCorner.Parent = switchTrack
 
-    local tbStroke = Instance.new("UIStroke")
-    tbStroke.Color = defaultState and C_BLUE or C_BORDER
-    tbStroke.Thickness = 1
-    tbStroke.Parent = tglBtn
+    local stStroke = Instance.new("UIStroke")
+    stStroke.Color = C_BORDER
+    stStroke.Thickness = 1
+    stStroke.Parent = switchTrack
+
+    local thumb = Instance.new("Frame")
+    thumb.Size = UDim2.new(0, 20, 0, 20)
+    thumb.Position = defaultState and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+    thumb.BackgroundColor3 = defaultState and C_BLACK or C_MUTED
+    thumb.BorderSizePixel = 0
+    thumb.Parent = switchTrack
+
+    local thCorner = Instance.new("UICorner")
+    thCorner.CornerRadius = UDim.new(1, 0)
+    thCorner.Parent = thumb
 
     local state = defaultState
-    tglBtn.MouseButton1Click:Connect(function()
+    switchTrack.MouseButton1Click:Connect(function()
         state = not state
-        tglBtn.BackgroundColor3 = state and C_BLUE or C_DARK
-        tbStroke.Color = state and C_BLUE or C_BORDER
-        tglBtn.Text = state and "ON" or "OFF"
+        local targetPos = state and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+        local targetTrackCol = state and C_WHITE or C_BLACK
+        local targetThumbCol = state and C_BLACK or C_MUTED
+
+        TweenService:Create(thumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = targetPos,
+            BackgroundColor3 = targetThumbCol
+        }):Play()
+
+        TweenService:Create(switchTrack, TweenInfo.new(0.2), {
+            BackgroundColor3 = targetTrackCol
+        }):Play()
+
         callback(state)
     end)
 
-    makeSettingCard(title, desc, tglBtn)
+    makeSettingCard(title, desc, switchTrack)
 end
 
 local function makeSettingInput(title, desc, placeholder, onApplied)
