@@ -90,6 +90,8 @@ local C_BORDER  = Color3.fromRGB(36, 36, 44)
 local C_WHITE   = Color3.fromRGB(255, 255, 255)
 local C_MUTED   = Color3.fromRGB(160, 160, 170)
 local C_SUBTLE  = Color3.fromRGB(90, 90, 100)
+local C_BLUE    = C_WHITE                      -- accent (monochrome: white)
+local C_BLUE_BG = Color3.fromRGB(38, 38, 46)   -- active/selected fill
 
 local FONT_TITLE = Enum.Font.GothamBold
 local FONT_TEXT  = Enum.Font.Gotham
@@ -1950,7 +1952,7 @@ function switchTab(tabName)
         for name, btn in pairs(dockButtons) do
             if name ~= "Close" then
                 if name == tabName then
-                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_BLUE, ImageColor3 = C_WHITE }):Play()
+                    TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_BLUE_BG, ImageColor3 = C_WHITE }):Play()
                 else
                     TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = C_CARD, ImageColor3 = C_MUTED }):Play()
                 end
@@ -2002,7 +2004,7 @@ btnSettings.MouseButton1Click:Connect(function() switchTab("Settings") end)
 task.defer(function()
     pages["Executor"].Visible = true
     if dockButtons["Executor"] then
-        dockButtons["Executor"].BackgroundColor3 = C_BLUE
+        dockButtons["Executor"].BackgroundColor3 = C_BLUE_BG
         dockButtons["Executor"].ImageColor3 = C_WHITE
     end
 end)
@@ -2018,4 +2020,203 @@ floatingBubble.MouseButton1Click:Connect(function()
     container.Visible = true
 end)
 
-print("[ORC] Titan Framework v8.0 Active.")
+-- ==========================================
+-- [12] STYLE PASS (polish layer: animations, hover, drag, layout fixes)
+-- ==========================================
+xpcall(function()
+    local HOVER_STROKE = Color3.fromRGB(120, 120, 136)
+
+    local function tween(obj, t, props, style, dir)
+        local tw = TweenService:Create(obj, TweenInfo.new(t, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out), props)
+        tw:Play()
+        return tw
+    end
+
+    -- Window: soft vertical gradient + gradient border
+    local wg = Instance.new("UIGradient")
+    wg.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(196, 196, 202))
+    wg.Rotation = 90
+    wg.Parent = floatingWindow
+
+    fwStroke.Color = Color3.fromRGB(96, 96, 110)
+    fwStroke.Thickness = 1.2
+    local fwg = Instance.new("UIGradient")
+    fwg.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(70, 70, 78))
+    fwg.Rotation = 120
+    fwg.Parent = fwStroke
+
+    rdStroke.Color = Color3.fromRGB(70, 70, 82)
+    local dg = Instance.new("UIGradient")
+    dg.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(190, 190, 196))
+    dg.Rotation = 90
+    dg.Parent = rightDock
+
+    -- Header: fix mismatched corners (rounded top only) + faded divider
+    header.Active = true
+    header.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+    header:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 10)
+    local fill = Instance.new("Frame")
+    fill.Name = "HeaderFill"
+    fill.Size = UDim2.new(1, 0, 0, 10)
+    fill.Position = UDim2.new(0, 0, 1, -10)
+    fill.BackgroundColor3 = header.BackgroundColor3
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 1
+    fill.Parent = header
+    headerBottomBorder.ZIndex = 2
+    headerBottomBorder.BackgroundColor3 = Color3.fromRGB(80, 80, 94)
+    local dvg = Instance.new("UIGradient")
+    dvg.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.1),
+        NumberSequenceKeypoint.new(1, 1),
+    })
+    dvg.Parent = headerBottomBorder
+
+    -- Terminal tab bar: the UIListLayout was overriding the "+" button position
+    ttbLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ttbLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    local ttbPad = Instance.new("UIPadding")
+    ttbPad.PaddingLeft = UDim.new(0, 4)
+    ttbPad.Parent = terminalTabBar
+    btnNewTerminal.LayoutOrder = 1000
+    local tabOrder = 0
+
+    -- Draggable window (header)
+    local dragging, dragStart, startPos = false, nil, nil
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = floatingWindow.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local d = input.Position - dragStart
+            floatingWindow.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+
+    -- Open animation
+    local winScale = Instance.new("UIScale")
+    winScale.Parent = floatingWindow
+    local function popIn()
+        winScale.Scale = 0.94
+        tween(winScale, 0.28, { Scale = 1 }, Enum.EasingStyle.Back)
+    end
+    container:GetPropertyChangedSignal("Visible"):Connect(function()
+        if container.Visible then popIn() end
+    end)
+    popIn()
+
+    -- Status text: flash then auto-reset to READY
+    local statusToken = 0
+    headerStatus:GetPropertyChangedSignal("Text"):Connect(function()
+        if headerStatus.Text == "READY" then return end
+        statusToken = statusToken + 1
+        local mine = statusToken
+        headerStatus.TextColor3 = C_WHITE
+        tween(headerStatus, 2.5, { TextColor3 = C_SUBTLE })
+        task.delay(3.5, function()
+            if mine == statusToken then headerStatus.Text = "READY" end
+        end)
+    end)
+
+    -- Buttons: hover (border lights up), press (shrink), no default roblox tint
+    local function findStroke(b)
+        local s = b:FindFirstChildOfClass("UIStroke")
+        if s then return s end
+        if b.BackgroundTransparency >= 1 and b.Parent then
+            return b.Parent:FindFirstChildOfClass("UIStroke")
+        end
+        return nil
+    end
+
+    local function styleButton(btn)
+        if btn.Name == "FullBackdrop" or btn:GetAttribute("OrcStyled") then return end
+        btn:SetAttribute("OrcStyled", true)
+        btn.AutoButtonColor = false
+
+        if btn.Parent == terminalTabBar and btn ~= btnNewTerminal then
+            tabOrder = tabOrder + 1
+            btn.LayoutOrder = tabOrder
+        end
+
+        local sc
+        if btn.BackgroundTransparency < 1 then
+            sc = Instance.new("UIScale")
+            sc.Parent = btn
+        end
+        local hovering, baseStroke, baseText, strokeObj = false, nil, nil, nil
+
+        btn.MouseEnter:Connect(function()
+            hovering = true
+            strokeObj = findStroke(btn)
+            if strokeObj then
+                baseStroke = strokeObj.Color
+                tween(strokeObj, 0.15, { Color = HOVER_STROKE })
+            elseif btn:IsA("TextButton") and btn.BackgroundTransparency >= 1 then
+                baseText = btn.TextColor3
+                tween(btn, 0.15, { TextColor3 = C_WHITE })
+            end
+            if sc then tween(sc, 0.15, { Scale = 1.04 }) end
+        end)
+        btn.MouseLeave:Connect(function()
+            hovering = false
+            if strokeObj and baseStroke then tween(strokeObj, 0.2, { Color = baseStroke }) end
+            if baseText and btn:IsA("TextButton") then tween(btn, 0.2, { TextColor3 = baseText }) end
+            baseStroke, baseText = nil, nil
+            if sc then tween(sc, 0.2, { Scale = 1 }) end
+        end)
+        btn.MouseButton1Down:Connect(function()
+            if sc then tween(sc, 0.08, { Scale = 0.95 }) end
+        end)
+        btn.MouseButton1Up:Connect(function()
+            if sc then tween(sc, 0.12, { Scale = hovering and 1.04 or 1 }, Enum.EasingStyle.Back) end
+        end)
+    end
+
+    -- Text boxes: border lights up on focus, long code wraps instead of clipping
+    local function styleBox(tb)
+        if tb:GetAttribute("OrcStyled") then return end
+        tb:SetAttribute("OrcStyled", true)
+        if tb.MultiLine then tb.TextWrapped = true end
+        local base, st
+        tb.Focused:Connect(function()
+            st = tb:FindFirstChildOfClass("UIStroke") or (tb.Parent and tb.Parent:FindFirstChildOfClass("UIStroke"))
+            if st then
+                base = st.Color
+                tween(st, 0.15, { Color = C_WHITE })
+            end
+        end)
+        tb.FocusLost:Connect(function()
+            if st and base then tween(st, 0.2, { Color = base }) end
+        end)
+    end
+
+    local function styleScroll(sf)
+        sf.ScrollBarThickness = 3
+        sf.ScrollBarImageTransparency = 0.55
+    end
+
+    local function apply(obj)
+        if obj:IsA("TextButton") or obj:IsA("ImageButton") then
+            styleButton(obj)
+        elseif obj:IsA("TextBox") then
+            styleBox(obj)
+        elseif obj:IsA("ScrollingFrame") then
+            styleScroll(obj)
+        end
+    end
+
+    for _, d in ipairs(screenGui:GetDescendants()) do apply(d) end
+    screenGui.DescendantAdded:Connect(function(d) task.defer(apply, d) end)
+end, function(e)
+    warn("[ORC] Style pass error: " .. tostring(e))
+end)
+
+print("[ORC] Titan Framework v9.0 Active.")
