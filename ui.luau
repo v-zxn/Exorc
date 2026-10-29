@@ -141,12 +141,12 @@ backdropGradient.Rotation = 45
 backdropGradient.Parent = fullBackdrop
 
 -- ==========================================
--- [6] FLOATING CYBERPUNK DOCK (TRANSPARENT, SPACIOUS & GLOW ACCENTS)
+-- [6] FLOATING CYBERPUNK DOCK (COMPACT ICONS & SLEEK DESIGN)
 -- ==========================================
 local rightDock = Instance.new("Frame")
 rightDock.Name = "RightDock"
-rightDock.Size = UDim2.new(0, 58, 1, -24)
-rightDock.Position = UDim2.new(1, -66, 0, 12)
+rightDock.Size = UDim2.new(0, 48, 1, -24)
+rightDock.Position = UDim2.new(1, -56, 0, 12)
 rightDock.BackgroundColor3 = C_PANEL
 rightDock.BackgroundTransparency = 0.15
 rightDock.BorderSizePixel = 0
@@ -164,16 +164,16 @@ rdStroke.Parent = rightDock
 
 local dockButtonsContainer = Instance.new("Frame")
 dockButtonsContainer.Name = "DockButtons"
-dockButtonsContainer.Size = UDim2.new(1, 0, 1, -80)
-dockButtonsContainer.Position = UDim2.new(0, 0, 0, 12)
+dockButtonsContainer.Size = UDim2.new(1, 0, 1, -70)
+dockButtonsContainer.Position = UDim2.new(0, 0, 0, 10)
 dockButtonsContainer.BackgroundTransparency = 1
 dockButtonsContainer.Parent = rightDock
 
 -- Sliding Active Pill
 local activePill = Instance.new("Frame")
 activePill.Name = "ActivePill"
-activePill.Size = UDim2.new(0, 3, 0, 26)
-activePill.Position = UDim2.new(0, 3, 0, 10)
+activePill.Size = UDim2.new(0, 3, 0, 22)
+activePill.Position = UDim2.new(0, 2, 0, 8)
 activePill.BackgroundColor3 = C_BLUE
 activePill.BorderSizePixel = 0
 activePill.Parent = dockButtonsContainer
@@ -187,8 +187,8 @@ local dockButtons = {}
 local function makeDockButton(name, iconAsset, yOffset)
     local btn = Instance.new("ImageButton")
     btn.Name = "Btn_" .. name
-    btn.Size = UDim2.new(0, 40, 0, 40)
-    btn.Position = UDim2.new(0.5, -20, 0, yOffset)
+    btn.Size = UDim2.new(0, 32, 0, 32)
+    btn.Position = UDim2.new(0.5, -16, 0, yOffset)
     btn.BackgroundColor3 = C_CARD
     btn.BackgroundTransparency = 0.2
     btn.Image = iconAsset
@@ -198,7 +198,7 @@ local function makeDockButton(name, iconAsset, yOffset)
     btn.Parent = dockButtonsContainer
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = btn
 
     local stroke = Instance.new("UIStroke")
@@ -207,28 +207,28 @@ local function makeDockButton(name, iconAsset, yOffset)
     stroke.Parent = btn
 
     local pad = Instance.new("UIPadding")
-    pad.PaddingTop = UDim.new(0, 9)
-    pad.PaddingBottom = UDim.new(0, 9)
-    pad.PaddingLeft = UDim.new(0, 9)
-    pad.PaddingRight = UDim.new(0, 9)
+    pad.PaddingTop = UDim.new(0, 7)
+    pad.PaddingBottom = UDim.new(0, 7)
+    pad.PaddingLeft = UDim.new(0, 7)
+    pad.PaddingRight = UDim.new(0, 7)
     pad.Parent = btn
 
     dockButtons[name] = btn
     return btn
 end
 
--- 5 Buttons with comfortable vertical spacing (48px interval)
-local btnExecutor = makeDockButton("Executor", ASSETS.ICON_EXECUTOR, 6)
-local btnSaved    = makeDockButton("Saved", ASSETS.ICON_SAVED, 54)
-local btnSearch   = makeDockButton("Search", ASSETS.ICON_SEARCH, 102)
-local btnConsole  = makeDockButton("Console", ASSETS.ICON_CONSOLE, 150)
-local btnSettings = makeDockButton("Settings", ASSETS.ICON_SETTINGS, 198)
+-- 5 Buttons with comfortable compact spacing (42px interval)
+local btnExecutor = makeDockButton("Executor", ASSETS.ICON_EXECUTOR, 4)
+local btnSaved    = makeDockButton("Saved", ASSETS.ICON_SAVED, 46)
+local btnSearch   = makeDockButton("Search", ASSETS.ICON_SEARCH, 88)
+local btnConsole  = makeDockButton("Console", ASSETS.ICON_CONSOLE, 130)
+local btnSettings = makeDockButton("Settings", ASSETS.ICON_SETTINGS, 172)
 
--- Close Button (Anchored cleanly at bottom of pill dock)
+-- Close Button
 local btnClose = Instance.new("ImageButton")
 btnClose.Name = "Btn_Close"
-btnClose.Size = UDim2.new(0, 40, 0, 40)
-btnClose.Position = UDim2.new(0.5, -20, 1, -48)
+btnClose.Size = UDim2.new(0, 32, 0, 32)
+btnClose.Position = UDim2.new(0.5, -16, 1, -42)
 btnClose.BackgroundColor3 = C_CARD
 btnClose.BackgroundTransparency = 0.2
 btnClose.Image = ASSETS.ICON_CLOSE
@@ -238,7 +238,7 @@ btnClose.AutoButtonColor = false
 btnClose.Parent = rightDock
 
 local bcCorner = Instance.new("UICorner")
-bcCorner.CornerRadius = UDim.new(0, 10)
+bcCorner.CornerRadius = UDim.new(0, 8)
 bcCorner.Parent = btnClose
 
 local bcStroke = Instance.new("UIStroke")
@@ -247,10 +247,10 @@ bcStroke.Thickness = 1
 bcStroke.Parent = btnClose
 
 local bcPad = Instance.new("UIPadding")
-bcPad.PaddingTop = UDim.new(0, 10)
-bcPad.PaddingBottom = UDim.new(0, 10)
-bcPad.PaddingLeft = UDim.new(0, 10)
-bcPad.PaddingRight = UDim.new(0, 10)
+bcPad.PaddingTop = UDim.new(0, 8)
+bcPad.PaddingBottom = UDim.new(0, 8)
+bcPad.PaddingLeft = UDim.new(0, 8)
+bcPad.PaddingRight = UDim.new(0, 8)
 bcPad.Parent = btnClose
 dockButtons["Close"] = btnClose
 
@@ -300,12 +300,18 @@ task.spawn(function()
             floatingBubble.Image = getcustomasset(cachedLogoPath)
             fbFallbackText.Visible = false
         else
-            -- Download logo from GitHub
+            -- Direct download using HttpGet or request
             local logoData = nil
             if game.HttpGet then
-                logoData = game:HttpGet(ASSETS.PROJECT_LOGO, true)
+                pcall(function() logoData = game:HttpGet(ASSETS.PROJECT_LOGO, true) end)
             end
-            if logoData and writefile and getcustomasset then
+            if (not logoData or #logoData == 0) and request then
+                pcall(function()
+                    local res = request({ Url = ASSETS.PROJECT_LOGO, Method = "GET" })
+                    if res and (res.StatusCode == 200 or res.Body) then logoData = res.Body end
+                end)
+            end
+            if logoData and #logoData > 100 and writefile and getcustomasset then
                 writefile(cachedLogoPath, logoData)
                 floatingBubble.Image = getcustomasset(cachedLogoPath)
                 fbFallbackText.Visible = false
@@ -1197,7 +1203,30 @@ local function performScriptBloxSearch(query)
                         if string.find(imageUrl, "^/") then
                             imageUrl = "https://scriptblox.com" .. imageUrl
                         end
-                        img.Image = imageUrl
+
+                        -- Fetch and cache ScriptBlox image locally for fast Roblox asset rendering
+                        task.spawn(function()
+                            local hashName = "workspace/.sb_" .. string.gsub(item._id or tostring(math.random(1000, 9999)), "%W", "") .. ".png"
+                            pcall(function()
+                                if isfile and isfile(hashName) and getcustomasset then
+                                    img.Image = getcustomasset(hashName)
+                                else
+                                    local imgBytes = nil
+                                    if game.HttpGet then
+                                        imgBytes = game:HttpGet(imageUrl, true)
+                                    elseif request then
+                                        local res = request({ Url = imageUrl, Method = "GET" })
+                                        if res and (res.StatusCode == 200 or res.Body) then imgBytes = res.Body end
+                                    end
+                                    if imgBytes and #imgBytes > 100 and writefile and getcustomasset then
+                                        writefile(hashName, imgBytes)
+                                        img.Image = getcustomasset(hashName)
+                                    else
+                                        img.Image = imageUrl
+                                    end
+                                end
+                            end)
+                        end)
                     else
                         img.Image = ASSETS.FALLBACK_THUMB
                     end
@@ -1413,7 +1442,7 @@ btnClearAll.MouseButton1Click:Connect(function()
 end)
 
 local logOrder = 0
-local function addLogEntry(scrollFrame, text, tag)
+local function addLogEntry(scrollFrame, text, level)
     logOrder = logOrder + 1
     local row = Instance.new("Frame")
     row.Size = UDim2.new(1, 0, 0, 0)
@@ -1422,25 +1451,25 @@ local function addLogEntry(scrollFrame, text, tag)
     row.LayoutOrder = logOrder
     row.Parent = scrollFrame
 
-    local tagLabel = Instance.new("TextLabel")
-    tagLabel.Size = UDim2.new(0, 36, 0, 16)
-    tagLabel.BackgroundTransparency = 1
-    tagLabel.Text = tag or "ERR"
-    tagLabel.TextColor3 = C_WHITE
-    tagLabel.Font = FONT_CODE
-    tagLabel.TextSize = 10
-    tagLabel.TextXAlignment = Enum.TextXAlignment.Left
-    tagLabel.Parent = row
+    -- Color syntax based on severity: Red for Error, Yellow for Warning, Blue for Info, White for Output
+    local entryColor = C_WHITE
+    if level == "ERR" then
+        entryColor = Color3.fromRGB(255, 75, 75)   -- Sharp Red
+    elseif level == "WARN" then
+        entryColor = Color3.fromRGB(255, 205, 50)  -- Golden Yellow
+    elseif level == "INFO" then
+        entryColor = Color3.fromRGB(80, 170, 255)  -- Neon Blue
+    end
 
     local msgLabel = Instance.new("TextLabel")
-    msgLabel.Size = UDim2.new(1, -40, 0, 0)
-    msgLabel.Position = UDim2.new(0, 40, 0, 0)
+    msgLabel.Size = UDim2.new(1, -10, 0, 0)
+    msgLabel.Position = UDim2.new(0, 5, 0, 0)
     msgLabel.AutomaticSize = Enum.AutomaticSize.Y
     msgLabel.BackgroundTransparency = 1
     msgLabel.Text = tostring(text)
-    msgLabel.TextColor3 = C_WHITE
+    msgLabel.TextColor3 = entryColor
     msgLabel.Font = FONT_CODE
-    msgLabel.TextSize = 10
+    msgLabel.TextSize = 11
     msgLabel.TextXAlignment = Enum.TextXAlignment.Left
     msgLabel.TextWrapped = true
     msgLabel.Parent = row
@@ -1450,36 +1479,38 @@ local function addLogEntry(scrollFrame, text, tag)
     end)
 end
 
--- Hook LogService: Roblox Console logs all messages; ORC logs errors only
+-- Hook LogService: Clean log streaming with color highlights and zero tag clutter
 LogService.MessageOut:Connect(function(message, messageType)
-    local tag = "OUT"
+    local level = "OUT"
     if messageType == Enum.MessageType.MessageError then
-        tag = "ERR"
+        level = "ERR"
         addLogEntry(orcPane, message, "ERR")
     elseif messageType == Enum.MessageType.MessageWarning then
-        tag = "WARN"
+        level = "WARN"
     elseif messageType == Enum.MessageType.MessageInfo then
-        tag = "INFO"
+        level = "INFO"
     end
-    addLogEntry(rbxPane, message, tag)
+    addLogEntry(rbxPane, message, level)
 end)
 
 pcall(function()
     local history = LogService:GetLogHistory()
     for _, item in ipairs(history) do
-        local tag = "OUT"
+        local level = "OUT"
         if item.messageType == Enum.MessageType.MessageError then
-            tag = "ERR"
+            level = "ERR"
             addLogEntry(orcPane, item.message, "ERR")
         elseif item.messageType == Enum.MessageType.MessageWarning then
-            tag = "WARN"
+            level = "WARN"
+        elseif item.messageType == Enum.MessageType.MessageInfo then
+            level = "INFO"
         end
-        addLogEntry(rbxPane, item.message, tag)
+        addLogEntry(rbxPane, item.message, level)
     end
 end)
 
-addLogEntry(orcPane, "ORC Kernel active.", "INIT")
-addLogEntry(rbxPane, "Roblox Engine Console active.", "INIT")
+addLogEntry(orcPane, "ORC Kernel active.", "INFO")
+addLogEntry(rbxPane, "Roblox Engine Console active.", "INFO")
 
 -- ==========================================
 -- [12] TAB 5: ADVANCED SYSTEM & EXECUTOR SETTINGS
