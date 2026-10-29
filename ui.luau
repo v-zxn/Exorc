@@ -34,15 +34,30 @@ local TeleportService = game:GetService("TeleportService")
 local VirtualUser = game:GetService("VirtualUser")
 
 local player = Players.LocalPlayer
+if not player then
+    pcall(function()
+        player = Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    end)
+    if not player then
+        player = Players.LocalPlayer
+    end
+end
+
 local targetParent = CoreGui
 pcall(function()
     if not pcall(function() return CoreGui.Name end) then
-        targetParent = player:WaitForChild("PlayerGui", 5)
+        if player then
+            targetParent = player:WaitForChild("PlayerGui", 5) or CoreGui
+        end
     end
 end)
 
-local existingUI = targetParent:FindFirstChild("ORC_TITAN_DELTA_FRAMEWORK")
-if existingUI then existingUI:Destroy() end
+pcall(function()
+    local existingUI = targetParent:FindFirstChild("ORC_TITAN_DELTA_FRAMEWORK")
+    if existingUI then existingUI:Destroy() end
+    local existingCore = CoreGui:FindFirstChild("ORC_TITAN_DELTA_FRAMEWORK")
+    if existingCore then existingCore:Destroy() end
+end)
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ORC_TITAN_DELTA_FRAMEWORK"
@@ -56,9 +71,12 @@ screenGui.Parent = targetParent
 pcall(function()
     if player then
         player.OnTeleport:Connect(function()
-            if screenGui then screenGui:Destroy() end
+            pcall(function() screenGui:Destroy() end)
         end)
     end
+    TeleportService.TeleportInitFailed:Connect(function()
+        -- Teleport failed, keep alive
+    end)
 end)
 
 -- ==========================================
